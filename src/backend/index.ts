@@ -36,10 +36,6 @@ import { UserRepository } from './models/UserRepository.ts';
 import { UserController } from './controllers/UserController.ts';
 import { userRoutes } from './routes/UserRoutes.ts';
 
-import { UserReportRepository } from './models/UserReportRepository.ts';
-import { UserReportController } from './controllers/UserReportController.ts';
-import { userReportRoutes } from './routes/UserReportRoutes.ts';
-
 import { fileURLToPath } from 'url';
 
 import path from 'path';
@@ -47,10 +43,9 @@ import path from 'path';
 import express from 'express';
 import session from 'express-session';
 import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
 import dotenv from 'dotenv';
-
-import './auth.ts';
 
 const app = express();
 dotenv.config();
@@ -68,9 +63,9 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 const dbPath = './gramatDatabase.db';
 
-function isLoggedIn(req : any, res : any, next : any) {
-  req.user ? next() : res.sendStatus(401);
-}
+// function isLoggedIn(req : any, res : any, next : any) {
+//   req.user ? next() : res.sendStatus(401);
+// }
 
 async function init() {
     const db = new Database(dbPath);
@@ -112,9 +107,32 @@ async function init() {
     const userController = new UserController(userRepository);
     app.use("/user", userRoutes(userController));
 
-    const userReportRepository = new UserReportRepository(db);
-    const userReportController = new UserReportController(userReportRepository);
-    app.use("/userReport", userReportRoutes(userReportController));
+    passport.use(new GoogleStrategy({
+        clientID: `${process.env.GOOGLE_CLIENT_ID}`,
+        clientSecret: `${process.env.GOOGLE_CLIENT_SECRET}`,
+        callbackURL: `http://localhost:${PORT}/auth/google/callback`
+    },
+    async function(accessToken : any, refreshToken : any, profile : any, cb : any) {
+        if (await userRepository.checkIfUserExists(profile.id)) {
+            const user = await userRepository.getUserById(profile.id);
+            return cb(null, user);
+        } else {
+            const user = await userRepository.createUserWithGoogle(profile.id, profile.displayName, profile.emails[0].value, profile.photos[0].value);
+            return cb(null, user);
+        }
+    }
+    ));
+
+    passport.serializeUser(function(user : any, cb : any) {
+        // console.log('Serializing user:', user);
+        cb(null, user.id);
+    });
+
+    passport.deserializeUser(async function(id : any, cb : any) {
+        // console.log('Deserializing user with id:', id);
+        const user = await userRepository.getUserById(id);
+        cb(null, user);
+    });
 
     app.get('/login', (req, res) => {
         res.send('<a href="/auth/google">Login with Google</a>');
@@ -123,14 +141,14 @@ async function init() {
     app.get('/auth/google', passport.authenticate('google', { scope: ['email', 'profile'] }));
 
     app.get('/auth/google/callback', passport.authenticate('google', {
-        successRedirect: '/profile',
+        successRedirect: '/account.html',
         failureRedirect: '/login'
     }));
 
-    app.get('/profile', isLoggedIn, (req : any, res) => {
-        console.log(req.user);
-        res.send(`<img src="${req.user.photos[0].value}"/> <br><br> Hello, ${req.user.displayName} <br><br> <a href="/logout">Logout</a>`);
-    });
+    // app.get('/profile', isLoggedIn, (req : any, res) => {
+    //     console.log(req.user);
+    //     res.send(`<img src="${req.user.avatarUrl}"/> <br><br> Hello, ${req.user.name} <br><br> <a href="/logout">Logout</a>`);
+    // });
 
     app.get('/logout', (req, res) => {
         req.logout((err) => {
@@ -139,11 +157,12 @@ async function init() {
                 if (err) {
                     console.error(err);
                 }
-                console.log("Session destroyed");
+                // console.log("Session destroyed");
                 res.redirect('/login');   
             });
         });
     });
+
 }
 
 app.listen(PORT, () => {

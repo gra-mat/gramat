@@ -2,13 +2,15 @@ import { css, html, LitElement } from "../../lib/lit.min.js";
 
 class AccountView extends LitElement {
   static properties = {
-    userId: { type: Number, attribute: 'user-id' },
+    //userId: { type: Number, attribute: 'user-id' },
     userData: { type: Object },
   };
 
   constructor() {
     super();
+    this.loggedIn = false;
     this.userData = null;
+    this.fetchAccountData();
   }
 
   static styles = css`
@@ -216,22 +218,27 @@ class AccountView extends LitElement {
     }
     `;
 
-  updated(changedProps) {
-    // jak po raz pierwszy pojawi sie ID lub sie zmieni to
-    if (changedProps.has('userId') && this.userId) {
-      this.fetchAccountData();
-    }
-  }
+  // updated(changedProps) {
+  //   // jak po raz pierwszy pojawi sie ID lub sie zmieni to
+  //   if (changedProps.has('userId') && this.userId) {
+  //     this.fetchAccountData();
+  //   }
+  // }
 
   async fetchAccountData() {
     try {
       // jak bedzie zle ID
-      if (!this.userId || isNaN(Number(this.userId))) {
-        console.error('userId is not set or invalid');
+      // if (!this.userId || isNaN(Number(this.userId))) {
+      //   console.error('userId is not set or invalid');
+      //   return;
+      // }
+      const res = await fetch('/user/logged');
+      if (res.status === 401) {
+        this.loggedIn = false;
+        window.location.href = '/login';
         return;
       }
-      const res = await fetch(`/user/${this.userId}`);
-      if (!res.ok) throw new Error("Error fetching user data");
+      if (res.status !== 200) throw new Error("Error fetching user data");
       this.userData = await res.json();
     } catch (err) {
       console.error(err);
@@ -242,7 +249,6 @@ class AccountView extends LitElement {
     if (!this.userData) {
       return html`<div class="header">Ładowanie danych konta...</div>`;
     }
-
     return html`
     <div class="container">
       <div class="header">Konto</div>
@@ -288,6 +294,10 @@ class AccountView extends LitElement {
         <button class="settings-btn">
             <img src="../icons/settings.svg" class="icon" alt="">
             Ustawienia konta
+        </button>
+
+        <button class="settings-btn" @click=${() => window.location.href = '/logout'}>
+            Wyloguj się
         </button>
       </div>
 

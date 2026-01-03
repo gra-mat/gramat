@@ -4,8 +4,15 @@ class ExerciseView extends LitElement {
   
   static properties = {
     // nowa propertyka powiązana z atrybutem 'progress-step'
-    progressStep: { type: Number, attribute: 'progress-step' }
+    progressStep: { type: Number, attribute: 'progress-step' },
+    timer: { type: String },
   };
+
+  constructor() {
+    super();
+    this.progressStep = 0;
+    this.timer = "00:00";
+  }
 
   static styles = css`
     :host {
@@ -24,6 +31,14 @@ class ExerciseView extends LitElement {
       column-gap: 3%;
       background-color: #373a68ff;
       color: white;
+    }
+
+    .timer-header {
+      position: absolute;
+      padding: 20px 20px;
+      font-size: 2rem;
+      font-width: 2rem;
+      color: #9196d8ff;
     }
 
     .content {
@@ -96,7 +111,43 @@ class ExerciseView extends LitElement {
       color: white;
       box-shadow: inset 0 0 0 4px #fcff5bff;
     }
+
+    .hidden {
+      display: none;
+    }
+
+    #summary {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #2f3044;
+      color: white;
+      text-align: center;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    #summary span {
+      font-weight: bold;
+      color: #ffcc00;
+    }
   `;
+
+  startTimer() {
+    if (this._timerInterval) return; // Jeśli timer został już uruchomiony, nie uruchamiaj ponownie
+    let startTime = Date.now();
+
+    this._timerInterval = setInterval(() => {
+      const elapsedTime = Date.now() - startTime;
+      const minutes = Math.floor(elapsedTime / 1000 / 60);
+      const seconds = Math.floor((elapsedTime / 1000) % 60);
+
+      this.timer = `${minutes.toString().padStart(2, "0")}:${seconds
+        .toString()
+        .padStart(2, "0")}`;
+    }, 1000);
+  }
 
   connectedCallback() {
     super.connectedCallback();
@@ -104,6 +155,12 @@ class ExerciseView extends LitElement {
     link.rel = "stylesheet";
     link.href = "./lib/pure.min.css";
     this.renderRoot.prepend(link);
+    this.startTimer();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    clearInterval(this._timerInterval);
   }
 
   firstUpdated() {
@@ -167,6 +224,7 @@ class ExerciseView extends LitElement {
         </div>
         <div id="score">10</div>
       </div>
+      <div class="timer-header">${this.timer}</div>
       <div class="content">
         <div id="exercise">
           <slot></slot>

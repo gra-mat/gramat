@@ -9,6 +9,7 @@
     <script type="module" src="components/exercise-viewer.js"></script>
     <script type="module" src="components/exercises/addsub-exercise.js"></script>
     <script type="module" src="components/partial/success-mark.js"></script>
+    <script type="module" src="components/summary-viewer.js"></script>
 
     <style>
       html, body {
@@ -21,6 +22,14 @@
     <x-exercise-view>
       <x-addsub-exercise></x-addsub-exercise>
     </x-exercise-view>
+
+    <summary-viewer
+      id="summary"
+      class="hidden"
+      time="0m 37s"
+      accuracy="100%"
+      xp="+70 XP">
+    </summary-viewer>
 
     <script>
       document.addEventListener('DOMContentLoaded', async () => {
@@ -37,20 +46,65 @@
         const view = document.querySelector('x-exercise-view');
         const addSub = document.querySelector('x-addsub-exercise');
 
+        let startTime = Date.now();
+        let correctAnswers = 0;
+
         view && view.setAttribute('progress-step', String(100 / exercises.length));
 
         let idx = 0;
         addSub.setAttribute('exercise-id', String(exercises[idx].id));
 
-        view.addEventListener('next-exercise', () => {
+        const updateTimer = () => {
+          const elapsedTime = Date.now() - startTime;
+          const minutes = Math.floor(elapsedTime / 1000 / 60);
+          const seconds = Math.floor((elapsedTime / 1000) % 60);
+
+          const timerElement = document.getElementById("timer"); // Sprawdzanie istnienia elementu #timer
+
+          if (timerElement) {
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+          }
+        };
+
+        const timerInterval = setInterval(updateTimer, 1000);
+
+
+        view.addEventListener("next-exercise", () => {
           idx++;
+          const correct = true; 
+          if (correct) correctAnswers++;
+
           if (idx >= exercises.length) {
-            console.log('Koniec lekcji'); // do zmiany kiedys
+            const summary = document.querySelector("#summary");
+            if (!summary) {
+              console.error("Nie znaleziono elementu summary!");
+              return;
+            }
+
+            // Ukrywamy widok ćwiczeń
+            document.querySelector("x-exercise-view").classList.add("hidden");
+
+            // Aktualizujemy dane komponentu 'summary-viewer'
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+
+            summary.setAttribute("time", `${minutes}m ${seconds}s`);
+            summary.setAttribute("accuracy", `${Math.round((correctAnswers / exercises.length) * 100)}%`);
+            summary.setAttribute("xp", `+${(correctAnswers * 10).toFixed(0)} XP`);
+
+            // Wyświetlamy podsumowanie
+            summary.classList.remove("hidden");
+
+            // Zatrzymujemy timer
+            clearInterval(timerInterval);
+
             return;
           }
-          addSub.setAttribute('exercise-id', String(exercises[idx].id));
+
+          addSub.setAttribute("exercise-id", String(exercises[idx].id));
         });
-      });
+    });
     </script>
 
   </body>

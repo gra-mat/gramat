@@ -4,12 +4,22 @@ class AccountView extends LitElement {
   static properties = {
     //userId: { type: Number, attribute: 'user-id' },
     userData: { type: Object },
+    isSettingsOpen: { type: Boolean },
+    isMistakesOpen: { type: Boolean },
+    isWeaknessesOpen: { type: Boolean },
+    userMistakes: { type: Array },
+    userWeaknesses: { type: Array },
   };
 
   constructor() {
     super();
     this.loggedIn = false;
     this.userData = null;
+    this.isSettingsOpen = false;
+    this.isMistakesOpen = false;
+    this.isWeaknessesOpen = false;
+    this.userMistakes = []; // (tymczasowe przykladowe dane)
+    this.userWeaknesses = []; // (tymczasowe przykladowe dane)
     this.fetchAccountData();
   }
 
@@ -54,6 +64,51 @@ class AccountView extends LitElement {
         margin-bottom: 1rem;
     }
 
+    .button-group {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .button-group .btn {
+      flex: 1;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s;
+      
+    }
+    .button-group .btn.mistakes {
+      background: #f45757;
+      box-shadow: 0 5px 0 #833636ff;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .button-group .btn.mistakes:hover {
+      background: #ff6b6b;
+    }
+    .button-group .btn.weaknesses {
+      background: #6b6b99;
+      box-shadow: 0 5px 0 #4c4c7eff;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .button-group .btn.weaknesses:hover {
+      background: #7b75b1;
+    }
+
+    .button-group .btn.mistakes:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #833636ff;
+    }
+
+    .button-group .btn.weaknesses:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #4c4c7eff;
+    }
+
     .avatar {
         width: 96px;
         height: 96px;
@@ -96,11 +151,17 @@ class AccountView extends LitElement {
         font-size: 1rem;
         cursor: pointer;
         transition: background 0.2s;
+        box-shadow: 0 5px 0 #4c4c7eff;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
     }
     .settings-btn:hover {
         background: #7b75b1ff;
     }
 
+    .settings-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #4c4c7eff;
+    }
     .settings-btn .icon {
         position: absolute;
         left: 1rem;
@@ -109,6 +170,85 @@ class AccountView extends LitElement {
         width: 18px;
         height: 18px;
         pointer-events: none;
+    }
+
+     /* Styles for modals */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    .modal.open {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .modal-content {
+      background: #2f3044ff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      width: 90%;
+      max-width: 500px;
+      box-sizing: border-box;
+    }
+
+    .modal-header {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1.2rem;
+      text-align: center;
+    }
+
+    .modal-item {
+      margin: 1rem 0;
+    }
+
+    .modal-item label {
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+
+    .modal-item button {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: none;
+      background-color: #6166acff;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .modal-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .modal-list li {
+      background: #3f4173;
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+      border-radius: 8px;
+    }
+
+    .modal-close {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: #7b75b1;
+      cursor: pointer;
+      text-decoration: underline;
     }
 
     .section-title {
@@ -215,6 +355,13 @@ class AccountView extends LitElement {
             height: 72px;
             min-height: 50px;
         }
+        .modal-content {
+          width: 95%;
+          padding: 1.5rem;
+        }
+        .modal-header {
+          font-size: 1.2rem;
+        }
     }
     `;
 
@@ -240,9 +387,40 @@ class AccountView extends LitElement {
       }
       if (res.status !== 200) throw new Error("Error fetching user data");
       this.userData = await res.json();
+
+      this.userMistakes = [
+        'Zadanie 1: 2+2=6',
+        'Zadanie 4: 10-3=8',
+        'Zadanie 7: 7*2=15',
+      ];
+      this.userWeaknesses = ['Dodawanie do 10', 'Mnożenie liczb jednocyfrowych'];
+
     } catch (err) {
       console.error(err);
     }
+  }
+
+  toggleSettings() {
+    this.isSettingsOpen = !this.isSettingsOpen;
+  }
+
+  toggleMistakes() {
+    this.isMistakesOpen = !this.isMistakesOpen;
+  }
+
+  toggleWeaknesses() {
+    this.isWeaknessesOpen = !this.isWeaknessesOpen;
+  }
+
+  resetPoints() {
+    if (confirm('Czy na pewno chcesz zresetować swoje punkty?')) {
+      alert('Punkty zostały zresetowane (symulacja na razie).');
+    }
+  }
+
+  updateVisibility(event) {
+    const visibility = event.target.checked ? 'publiczny' : 'niepubliczny';
+    alert(`Profil jest teraz ${visibility} (symulacja na razie).`);
   }
 
   render() {
@@ -291,11 +469,58 @@ class AccountView extends LitElement {
           </div>
         </div>
 
-        <button class="settings-btn">
-            <img src="../icons/settings.svg" class="icon" alt="">
-            Ustawienia konta
+        <button class="settings-btn" @click=${this.toggleSettings}>
+          <img src="../icons/settings.svg" class="icon" alt="">
+          Ustawienia konta
         </button>
 
+        <div class="button-group">
+          <button class="btn mistakes" @click=${this.toggleMistakes}>Pomyłki</button>
+          <button class="btn weaknesses" @click=${this.toggleWeaknesses}>Słabe strony</button>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="modal ${this.isSettingsOpen ? 'open' : ''}">
+          <div class="modal-content">
+            <div class="modal-header">Ustawienia konta</div>
+
+            <div class="modal-item">
+              <label>
+                <input type="checkbox" @change=${this.updateVisibility} />
+                Profil widoczny dla innych użytkowników
+              </label>
+            </div>
+
+            <div class="modal-item">
+              <button @click=${this.resetPoints}>Resetuj punkty</button>
+            </div>
+
+            <div class="modal-close" @click=${this.toggleSettings}>Zamknij ustawienia</div>
+          </div>
+        </div>
+
+        <!-- Mistakes Modal -->
+      <div class="modal ${this.isMistakesOpen ? 'open' : ''}">
+        <div class="modal-content">
+          <div class="modal-header">Pomyłki</div>
+          <ul class="modal-list">
+            ${this.userMistakes.map((mistake) => html`<li>${mistake}</li>`)}
+          </ul>
+          <div class="modal-close" @click=${this.toggleMistakes}>Zamknij</div>
+        </div>
+      </div>
+
+      <!-- Weaknesses Modal -->
+      <div class="modal ${this.isWeaknessesOpen ? 'open' : ''}">
+        <div class="modal-content">
+          <div class="modal-header">Słabe strony</div>
+          <ul class="modal-list">
+            ${this.userWeaknesses.map((weakness) => html`<li>${weakness}</li>`)}
+          </ul>
+          <div class="modal-close" @click=${this.toggleWeaknesses}>Zamknij</div>
+        </div>
+      </div>
+        
         <button class="settings-btn" @click=${() => window.location.href = '/logout'}>
             Wyloguj się
         </button>

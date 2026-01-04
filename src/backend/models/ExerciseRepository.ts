@@ -70,7 +70,7 @@ export class ExerciseRepository {
             );
             return exercise;
         } catch (err: any) {
-            throw new Error(`eeError fetching exercise: ${err}`);
+            throw new Error(`Error fetching exercise: ${err}`);
         }
     }
 }

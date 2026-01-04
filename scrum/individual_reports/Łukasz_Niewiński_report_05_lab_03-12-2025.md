@@ -11,7 +11,9 @@ Okres: 03.12.2025
 
 ### Zakres moich działań:
 
-1. [TODO: wypełnić zadania]
+1. przerzucenie zadań ze starego projektu do nowego
+2. nauka dzielenia pisemnego
+3. okerślenie zadań na kolejny sprint
 
 ### Samoocena:
 
@@ -24,4 +26,4 @@ Okres: 03.12.2025
 
 ### Refleksja:
 
-Dobrze poszło, wiemy co robić, dzisiaj za dużo nie było zrobione, ale są dobre perspektywy na next weekly sprint
+

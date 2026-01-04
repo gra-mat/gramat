@@ -16,13 +16,13 @@ export class LessonController {
                 id: lesson.id,
                 name: lesson.name,
                 chapterId: lesson.chapterId,
-                exercises: lesson.exercises.map(lesson => ({
-                    id: lesson.id,
-                    lessonId: lesson.lessonId,
-                    difficultyId: lesson.difficultyId,
-                    exerciseQuestion: lesson.exerciseQuestion,
-                    exerciseProperties: lesson.exerciseProperties,
-                    exerciseAnswer: lesson.exerciseAnswer
+                exercises: lesson.exercises.map(exercise => ({
+                    id: exercise.id,
+                    lessonId: exercise.lessonId,
+                    difficultyId: exercise.difficultyId,
+                    exerciseQuestion: exercise.exerciseQuestion,
+                    exerciseProperties: exercise.exerciseProperties,
+                    exerciseAnswer: exercise.exerciseAnswer
                 }))
             };
             res.json(result);
@@ -42,13 +42,13 @@ export class LessonController {
                 id: lesson.id,
                 name: lesson.name,
                 chapterId: lesson.chapterId,
-                exercises: lesson.exercises.map(lesson => ({
-                    id: lesson.id,
-                    lessonId: lesson.lessonId,
-                    difficultyId: lesson.difficultyId,
-                    exerciseQuestion: lesson.exerciseQuestion,
-                    exerciseProperties: lesson.exerciseProperties,
-                    exerciseAnswer: lesson.exerciseAnswer
+                exercises: lesson.exercises.map(exercise => ({
+                    id: exercise.id,
+                    lessonId: exercise.lessonId,
+                    difficultyId: exercise.difficultyId,
+                    exerciseQuestion: exercise.exerciseQuestion,
+                    exerciseProperties: exercise.exerciseProperties,
+                    exerciseAnswer: exercise.exerciseAnswer
                 }))
             };
             res.json(result);

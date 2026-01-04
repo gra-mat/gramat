@@ -372,20 +372,18 @@ class AccountView extends LitElement {
   //   }
   // }
 
-  async fetchAccountData() {
+ async fetchAccountData() {
     try {
-      // jak bedzie zle ID
-      // if (!this.userId || isNaN(Number(this.userId))) {
-      //   console.error('userId is not set or invalid');
-      //   return;
-      // }
-      const res = await fetch('/user/logged');
+      const res = await fetch('/api/me');
+      
       if (res.status === 401) {
         this.loggedIn = false;
-        window.location.href = '/login';
+        window.location.href = '/index.html'; 
         return;
       }
+      
       if (res.status !== 200) throw new Error("Error fetching user data");
+      
       this.userData = await res.json();
 
       this.userMistakes = [

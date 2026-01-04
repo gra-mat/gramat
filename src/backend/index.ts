@@ -116,7 +116,15 @@ async function init() {
         if (await userRepository.checkIfUserExists(profile.id)) {
             const user = await userRepository.getUserById(profile.id);
             return cb(null, user);
-        } else {
+        } 
+        
+        //if (await userRepository.checkIfUserExists(profile.id)) {
+    //await userRepository.updateUserAvatar(profile.id, profile.photos[0].value); 
+    //const user = await userRepository.getUserById(profile.id);
+    //return cb(null, user);
+    //}
+        
+        else {
             const user = await userRepository.createUserWithGoogle(profile.id, profile.displayName, profile.emails[0].value, profile.photos[0].value);
             return cb(null, user);
         }
@@ -164,6 +172,16 @@ async function init() {
     });
 
 }
+
+//wysylanie danych do fronta
+app.get('/api/me', (req: any, res) => {
+        if (req.user) {
+            const { password, ...safeUser } = req.user; 
+            res.json(safeUser);
+        } else {
+            res.status(401).json({ error: 'Not logged in' });
+        }
+    });
 
 app.listen(PORT, () => {
     console.log(`Gramat is running on port ${PORT}`);

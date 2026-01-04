@@ -6,6 +6,9 @@ services:
     build: .
     ports:
       - "3000:3000"
+
+    env_file:
+      - ./backend/.env
     
     volumes:
       - ./backend/gramatDatabase.db:/app/backend/gramatDatabase.db

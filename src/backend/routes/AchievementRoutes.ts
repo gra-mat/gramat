@@ -6,5 +6,7 @@ export const achievementRoutes = (achievementController: AchievementController):
 
   router.get('/:id', achievementController.getAchievementById);
 
+  router.get('/', achievementController.getAllAchievements);
+  
   return router;
 };

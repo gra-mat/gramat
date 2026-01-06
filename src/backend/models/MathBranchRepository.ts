@@ -70,4 +70,32 @@ export class MathBranchRepository {
             throw new Error(`Error fetching lesson: ${err}`);
         }
     }
+
+    async getMathBranchByLessonId(lessonId : number) : Promise<MathBranch> {
+        try {
+            const rows = await new Promise<any[]>((resolve, reject) => {
+                if (this.db.dbObj === null) {
+                    throw new Error('Database not connected');
+                }
+                this.db.dbObj.all(`SELECT mb.math_branch_id, mb.math_branch_name 
+                                   FROM math_branches mb
+                                   JOIN chapters c ON mb.math_branch_id = c.math_branch_id
+                                   JOIN lessons l ON c.chapter_id = l.chapter_id
+                                   WHERE l.lesson_id = ?`, [lessonId], (err, rows) => {
+                    if (err) { reject(err) }
+                    else { resolve(rows) };
+                });
+            });
+
+            if (!rows || rows.length === 0) {
+                throw new Error(`Math branch for lesson ${lessonId} not found`);
+            }
+
+            const r = rows[0];
+            const mathBranch = new MathBranch(r.math_branch_id, r.math_branch_name, []);
+            return mathBranch;
+        } catch (err) {
+            throw new Error(`Error fetching math branch: ${err}`);
+        }
+    }
 }

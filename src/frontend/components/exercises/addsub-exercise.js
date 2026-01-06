@@ -84,8 +84,14 @@ class AddSubExercise extends LitElement {
   }
 
   check() {
+    if (this._checkInProgress) return;
+
+    this._checkInProgress = true;
+    let correct = false;
+
     if (this.config.answer_type === 'slider') {
-        if (this.given === this.solution) {
+        correct = (this.given === this.solution)
+        if (correct) {
             this.shadowRoot.getElementById('mark').show();
         } else {
             const el = this.shadowRoot.querySelector('x-input-slider');
@@ -93,7 +99,8 @@ class AddSubExercise extends LitElement {
         }
     } 
     else if (this.config.answer_type === 'drag-drop') {
-        if (this.given === this.solution) {
+        correct = (this.given === this.solution)
+        if (correct) {
             this.shadowRoot.getElementById('mark').show();
         } else {
             const el = this.shadowRoot.querySelector('x-drag-drop');
@@ -101,7 +108,8 @@ class AddSubExercise extends LitElement {
         }
     }
     else if (this.config.answer_type === 'find-error') {
-        if (this.given === this.solution) {
+        correct = (this.given === this.solution)
+        if (correct) {
             this.shadowRoot.getElementById('mark').show();
         } else {
             const el = this.shadowRoot.querySelector('x-find-error');
@@ -116,8 +124,16 @@ class AddSubExercise extends LitElement {
         const isAllCorrect = this.statuses.every(s => s === "correct");
         if (isAllCorrect && this.given.length === this.solution.length) {
             this.shadowRoot.getElementById('mark').show();
-        } 
+            correct = true;
+        } else correct = false;
     }
+
+    this.isCorrect = correct;
+
+    setTimeout(() => {
+      this._checkInProgress = false;
+    }, 2000); 
+
   }
 
   connectedCallback() {
@@ -131,7 +147,7 @@ class AddSubExercise extends LitElement {
     if (this._loadingId === id) return;
     this._loadingId = id;
 
-    fetch(`/exercise/${id}`)
+    fetch(`/api/exercise/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();

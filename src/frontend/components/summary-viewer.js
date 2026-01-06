@@ -140,10 +140,25 @@ class SummaryViewer extends LitElement {
   }
 
   _repeatLesson() {
-    console.log("Powtórz lekcję");
+    const params = new URLSearchParams(window.location.search);
+    const lessonId = params.get('lessonId');
+    if (lessonId) window.location.href = `lesson.html?lessonId=${encodeURIComponent(lessonId)}`;
+    else window.location.reload();
+
+    console.log("Powtórz lekcje");
   }
 
   _proceed() {
+    const params = new URLSearchParams(window.location.search);
+    const lessonId = params.get('lessonId');
+    
+    this.dispatchEvent(new CustomEvent('lesson-proceed', {
+      detail: { lessonId },
+      bubbles: true,
+      composed: true
+    }));
+
+    window.location.href = 'index.html';
     console.log("Przejdź dalej");
   }
 }

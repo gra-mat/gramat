@@ -10,8 +10,9 @@ export class User {
     strengths: string | null;
     weaknesses: string | null;
     suggestedExercises: string | null;
+    stats : string | null;
 
-    constructor(id: string, name: string, email: string, password: string | null, authProvider: string, avatarUrl: string | null, permissions: string, points: number, strengths: string | null, weaknesses: string | null, suggestedExercises: string | null) {
+    constructor(id: string, name: string, email: string, password: string | null, authProvider: string, avatarUrl: string | null, permissions: string, points: number, strengths: string | null, weaknesses: string | null, suggestedExercises: string | null, stats: string | null) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -23,6 +24,7 @@ export class User {
         this.strengths = strengths;
         this.weaknesses = weaknesses;
         this.suggestedExercises = suggestedExercises;
+        this.stats = stats;
     }
 
     getId(): string {
@@ -111,5 +113,13 @@ export class User {
     
     setSuggestedExercises(suggestedExercises: string | null): void {
         this.suggestedExercises = suggestedExercises;
+    }
+
+    getStats(): string | null {
+        return this.stats;
+    }
+    
+    setStats(stats: string | null): void {
+        this.stats = stats;
     }
 }

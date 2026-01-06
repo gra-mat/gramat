@@ -1,3 +1,4 @@
+import { Achievement } from '../models/Achievement.ts';
 import { AchievementRepository } from '../models/AchievementRepository.ts';
 
 export class AchievementController {
@@ -15,7 +16,9 @@ export class AchievementController {
                 const result = {
                     id: achievement.id,
                     name: achievement.name,
+                    imageUrl: achievement.imageUrl,
                     description: achievement.description,
+                    conditions: achievement.conditions
                 };
                 res.json(result);
             }).catch((err) => {
@@ -27,4 +30,22 @@ export class AchievementController {
         }
     }
 
+    getAllAchievements = async (req : any, res : any) => {
+        try {
+            this.achievementRepository.getAllAchievements().then((achievements : Achievement[]) => {
+                const result = achievements.map((achievement : Achievement) => ({
+                    id: achievement.id,
+                    name: achievement.name,
+                    imageUrl: achievement.imageUrl,
+                    description: achievement.description,
+                    conditions: achievement.conditions
+                }));
+                res.json(result);
+            }).catch((err : Error) => {
+                res.status(500).json({ error: err.message });
+            });
+        } catch (err : any) {
+            res.status(500).json({ error: err.message });
+        }
+    }
 }

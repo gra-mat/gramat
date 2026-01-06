@@ -32,80 +32,79 @@
     </summary-viewer>
 
     <script>
-      document.addEventListener('DOMContentLoaded', async () => {
-        const params = new URLSearchParams(location.search);
-        const lessonId = params.get('lessonId');
-        if (!lessonId) return;
+  document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(location.search);
+    const lessonId = params.get('lessonId');
+    if (!lessonId) return;
 
-        const r = await fetch(`/lesson/${lessonId}`);
-        if (!r.ok) { console.error('Nie można pobrać lekcji', r.status); return; }
-        const data = await r.json();
-        const exercises = data.exercises || [];
-        if (!exercises.length) return;
+    const r = await fetch(`/lesson/${lessonId}`);
+    if (!r.ok) { console.error('Nie można pobrać lekcji', r.status); return; }
+    const data = await r.json();
+    const exercises = data.exercises || [];
+    if (!exercises.length) return;
 
-        const view = document.querySelector('x-exercise-view');
-        const addSub = document.querySelector('x-addsub-exercise');
+    const view = document.querySelector('x-exercise-view');
+    const addSub = document.querySelector('x-addsub-exercise');
 
-        let startTime = Date.now();
-        let correctAnswers = 0;
+    let startTime = Date.now();
+    let correctAnswers = 0;
+    let wrongAnswers = 0;
 
-        view && view.setAttribute('progress-step', String(100 / exercises.length));
+    view && view.setAttribute('progress-step', String(100 / exercises.length));
 
-        let idx = 0;
-        addSub.setAttribute('exercise-id', String(exercises[idx].id));
+    let idx = 0;
+    addSub.setAttribute('exercise-id', String(exercises[idx].id));
 
-        const updateTimer = () => {
-          const elapsedTime = Date.now() - startTime;
-          const minutes = Math.floor(elapsedTime / 1000 / 60);
-          const seconds = Math.floor((elapsedTime / 1000) % 60);
+    const updateTimer = () => {
+      const elapsedTime = Date.now() - startTime;
+      const minutes = Math.floor(elapsedTime / 1000 / 60);
+      const seconds = Math.floor((elapsedTime / 1000) % 60);
 
-          const timerElement = document.getElementById("timer"); // Sprawdzanie istnienia elementu #timer
+      const timerElement = document.getElementById("timer");
+      if (timerElement) {
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+      }
+    };
 
-          if (timerElement) {
-            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-          }
-        };
+    const timerInterval = setInterval(updateTimer, 1000);
 
-        const timerInterval = setInterval(updateTimer, 1000);
+    view.addEventListener("next-exercise", () => {
 
+      const wasCorrect = !!addSub.isCorrect;
+      if (wasCorrect) correctAnswers++;
+      else wrongAnswers++;
 
-        view.addEventListener("next-exercise", () => {
-          idx++;
-          const correct = true; 
-          if (correct) correctAnswers++;
+      idx++; 
 
-          if (idx >= exercises.length) {
-            const summary = document.querySelector("#summary");
-            if (!summary) {
-              console.error("Nie znaleziono elementu summary!");
-              return;
-            }
+      if (idx >= exercises.length) {
+        const summary = document.querySelector("#summary");
+        if (!summary) {
+          console.error("Nie znaleziono elementu summary!");
+          return;
+        }
 
-            // Ukrywamy widok ćwiczeń
-            document.querySelector("x-exercise-view").classList.add("hidden");
+        document.querySelector("x-exercise-view").classList.add("hidden");
 
-            // Aktualizujemy dane komponentu 'summary-viewer'
-            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-            const minutes = Math.floor(elapsedTime / 60);
-            const seconds = elapsedTime % 60;
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        const minutes = Math.floor(elapsedTime / 60);
+        const seconds = elapsedTime % 60;
 
-            summary.setAttribute("time", `${minutes}m ${seconds}s`);
-            summary.setAttribute("accuracy", `${Math.round((correctAnswers / exercises.length) * 100)}%`);
-            summary.setAttribute("xp", `+${(correctAnswers * 10).toFixed(0)} XP`);
+        const total = exercises.length;
+        summary.setAttribute("time", `${minutes}m ${seconds}s`);
+        summary.setAttribute("accuracy", `${Math.round((correctAnswers / total) * 100)}%`);
+        summary.setAttribute("xp", `+${(correctAnswers * 10).toFixed(0)} XP`);
+        console.log(correctAnswers);
+        console.log(total);
+        summary.classList.remove("hidden");
 
-            // Wyświetlamy podsumowanie
-            summary.classList.remove("hidden");
+        clearInterval(timerInterval);
+        return;
+      }
 
-            // Zatrzymujemy timer
-            clearInterval(timerInterval);
-
-            return;
-          }
-
-          addSub.setAttribute("exercise-id", String(exercises[idx].id));
-        });
+      addSub.setAttribute("exercise-id", String(exercises[idx].id));
     });
-    </script>
+  });
+</script>
 
   </body>
 </html>

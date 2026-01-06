@@ -3,7 +3,6 @@ import { css, html, LitElement } from "../../lib/lit.min.js";
 class ExerciseView extends LitElement {
   
   static properties = {
-    // nowa propertyka powiązana z atrybutem 'progress-step'
     progressStep: { type: Number, attribute: 'progress-step' },
     timer: { type: String },
   };
@@ -12,6 +11,11 @@ class ExerciseView extends LitElement {
     super();
     this.progressStep = 0;
     this.timer = "00:00";
+
+
+    this._animationInProgress = false;
+    this._pendingNext = false;
+    this._nextTimeout = null;
   }
 
   static styles = css`
@@ -135,7 +139,7 @@ class ExerciseView extends LitElement {
   `;
 
   startTimer() {
-    if (this._timerInterval) return; // Jeśli timer został już uruchomiony, nie uruchamiaj ponownie
+    if (this._timerInterval) return;
     let startTime = Date.now();
 
     this._timerInterval = setInterval(() => {
@@ -161,6 +165,10 @@ class ExerciseView extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     clearInterval(this._timerInterval);
+    if (this._nextTimeout) {
+      clearTimeout(this._nextTimeout);
+      this._nextTimeout = null;
+    }
   }
 
   firstUpdated() {
@@ -170,15 +178,23 @@ class ExerciseView extends LitElement {
       this._slottedComponent = assigned[0];
     });
 
+    this.addEventListener('answer-animated', () => {
+      if (this._pendingNext) {
+        if (this._nextTimeout) {
+          clearTimeout(this._nextTimeout);
+          this._nextTimeout = null;
+        }
+        this._completeCycle();
+      }
+    });
 
     this._currentProgress = 0;
-
     this._progressStep = (typeof this.progressStep === 'number') ? this.progressStep : 0;
-
     const barEl = this.renderRoot.getElementById('bar');
     if (barEl) {
       barEl.style.width = `${this._currentProgress}%`;
     }
+
 
     this.addEventListener('success-complete', (ev) => {
       const bar = this.renderRoot.getElementById('bar');
@@ -192,24 +208,55 @@ class ExerciseView extends LitElement {
         bar.style.width = `${Math.min(100, Number(this._currentProgress.toFixed(4)))}%`;
       }
 
-      this.dispatchEvent(new CustomEvent('next-exercise', { bubbles: true, composed: true }));
+      if (this._pendingNext) {
+        if (this._nextTimeout) {
+          clearTimeout(this._nextTimeout);
+          this._nextTimeout = null;
+        }
+        this._completeCycle();
+      }
     });
   }
 
-  updated(changedProps) {
-    if (changedProps.has('progressStep')) {
-      this._progressStep = Number(this.progressStep) || 0;
-
-      const bar = this.renderRoot?.getElementById('bar');
-      if (bar) {
-        bar.style.width = `${this._currentProgress}%`;
-      }
+  _completeCycle() {
+    if (!this._pendingNext) return;
+    this._pendingNext = false;
+    this._animationInProgress = false;
+    if (this._nextTimeout) {
+      clearTimeout(this._nextTimeout);
+      this._nextTimeout = null;
     }
+    this.dispatchEvent(new CustomEvent('next-exercise', { bubbles: true, composed: true }));
   }
 
+
+updated(changedProps) {
+  if (changedProps.has('progressStep')) {
+    this._progressStep = Number(this.progressStep) || 0;
+
+    const bar = this.renderRoot?.getElementById('bar');
+    if (bar) {
+      bar.style.width = `${this._currentProgress}%`;
+    }
+  }
+}
+
   _handleCheck() {
+
+    if (this._animationInProgress) return;
+
     if (this._slottedComponent?.check) {
+      this._animationInProgress = true;
+      this._pendingNext = true;
+
       this._slottedComponent.check();
+
+      const ANIMATION_TIMEOUT = 2000; 
+      this._nextTimeout = setTimeout(() => {
+        this._nextTimeout = null;
+        this._completeCycle();
+      }, ANIMATION_TIMEOUT);
+
     } else {
       console.warn("Slotted component has no check() method");
     }
@@ -222,7 +269,7 @@ class ExerciseView extends LitElement {
         <div id="progress">
           <div id="bar"></div>
         </div>
-        <div id="score">10</div>
+        <div id="score">7</div>
       </div>
       <div class="timer-header">${this.timer}</div>
       <div class="content">

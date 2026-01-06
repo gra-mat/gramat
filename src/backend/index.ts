@@ -118,6 +118,7 @@ async function init() {
             return cb(null, user);
         } 
         
+        // to potem do aktualizowania avatara aanga ale trzeba zrobic updateUser
         //if (await userRepository.checkIfUserExists(profile.id)) {
     //await userRepository.updateUserAvatar(profile.id, profile.photos[0].value); 
     //const user = await userRepository.getUserById(profile.id);
@@ -149,7 +150,7 @@ async function init() {
     app.get('/auth/google', passport.authenticate('google', { scope: ['email', 'profile'] }));
 
     app.get('/auth/google/callback', passport.authenticate('google', {
-        successRedirect: '/account.html',
+        successRedirect: '/',
         failureRedirect: '/login'
     }));
 

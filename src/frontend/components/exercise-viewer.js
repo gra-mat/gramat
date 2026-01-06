@@ -215,10 +215,21 @@ class ExerciseView extends LitElement {
     }
   }
 
+   tryExit() {
+    if (confirm("Czy na pewno chcesz przerwać lekcję? Postępy nie zostaną zapisane.")) {
+      console.log("sygnal exit-lesson wyslany"); 
+      
+      this.dispatchEvent(new CustomEvent('exit-lesson', {
+        bubbles: true, 
+        composed: true 
+      }));
+    }
+  }
+
   render() {
     return html`
       <div class="header">
-        <div id="close">X</div>
+        <div id="close" @click="${this.tryExit}" style="cursor: pointer;">X</div>
         <div id="progress">
           <div id="bar"></div>
         </div>

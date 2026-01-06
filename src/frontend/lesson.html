@@ -37,7 +37,7 @@
     const lessonId = params.get('lessonId');
     if (!lessonId) return;
 
-    const r = await fetch(`/lesson/${lessonId}`);
+    const r = await fetch(`/api/lesson/${lessonId}`);
     if (!r.ok) { console.error('Nie można pobrać lekcji', r.status); return; }
     const data = await r.json();
     const exercises = data.exercises || [];
@@ -90,14 +90,34 @@
         const seconds = elapsedTime % 60;
 
         const total = exercises.length;
+        const accuracy = Math.round((correctAnswers / total) * 100);
+        const xp = (correctAnswers * 10).toFixed(0);
+
+        
         summary.setAttribute("time", `${minutes}m ${seconds}s`);
-        summary.setAttribute("accuracy", `${Math.round((correctAnswers / total) * 100)}%`);
-        summary.setAttribute("xp", `+${(correctAnswers * 10).toFixed(0)} XP`);
+        summary.setAttribute("accuracy", `${accuracy}%`);
+        summary.setAttribute("xp", `+${xp} XP`);
         console.log(correctAnswers);
         console.log(total);
         summary.classList.remove("hidden");
 
         clearInterval(timerInterval);
+
+        fetch("/api/me/lessonCompleted", {
+          method: "POST",
+          credentials: "include",
+          body: JSON.stringify({
+            "lessonId": lessonId,
+            "time": elapsedTime,
+            "accuracy": accuracy,
+            "xp": Number(xp)
+          }),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8"
+          }
+        });
+        console.log("Lekcja zakończona");
+
         return;
       }
 

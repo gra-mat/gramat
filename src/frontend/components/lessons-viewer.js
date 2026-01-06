@@ -76,7 +76,7 @@ class LessonsView extends LitElement {
 
   async firstUpdated() {
     try {
-      const res = await fetch("/lesson/list");
+      const res = await fetch("/api/lesson/list");
       const data = await res.json();
       this.lessons = data;
     } catch (err) {

@@ -38,7 +38,8 @@ export class UserRepository {
                 r.user_points,
                 r.user_strengths,
                 r.user_weaknesses,
-                r.user_suggested_exercises
+                r.user_suggested_exercises,
+                r.user_stats
             );
             return user;
         } catch (err: any) {
@@ -72,14 +73,15 @@ export class UserRepository {
         const strengths = null;
         const weaknesses = null;
         const suggestedExercises = null;
-        const newUser = new User(userId, name, email, password, authProvider, avatarUrl, permissions, points, strengths, weaknesses, suggestedExercises);
+        const stats = JSON.stringify({"completedLessons": 0, "perfectlyCompletedLessons": 0, math_branches: {}});
+        const newUser = new User(userId, name, email, password, authProvider, avatarUrl, permissions, points, strengths, weaknesses, suggestedExercises, stats);
         try {
             await new Promise<void>((resolve, reject) => {
                 if (this.db.dbObj === null) {
                     throw new Error('Database not connected');
                 }
 
-                this.db.dbObj.run('INSERT INTO users (user_id, user_name, user_email, user_password, user_auth_provider, user_avatar_url, user_permissions, user_points, user_strengths, user_weaknesses, user_suggested_exercises) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [userId, name, email, password, authProvider, avatarUrl, permissions, points, strengths, weaknesses, suggestedExercises], (err) => {
+                this.db.dbObj.run('INSERT INTO users (user_id, user_name, user_email, user_password, user_auth_provider, user_avatar_url, user_permissions, user_points, user_strengths, user_weaknesses, user_suggested_exercises, user_stats) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [userId, name, email, password, authProvider, avatarUrl, permissions, points, strengths, weaknesses, suggestedExercises, stats], (err) => {
                     if (err) { reject(err); }
                     else { resolve(); }
                 });
@@ -90,4 +92,72 @@ export class UserRepository {
             throw new Error(`Error creating a user: ${err}`);
         }
     }
+
+    async updateUser(user: User) : Promise<void> {
+        try {
+            await new Promise<void>((resolve, reject) => {
+                if (this.db.dbObj === null) {
+                    throw new Error('Database not connected');
+                }
+                this.getUserById(user.getId()).then((existingUser) => {
+                    const changes = [];
+                    const params = [];
+                    if (user.getName() !== existingUser.getName()) {
+                        changes.push('user_name = ?');
+                        params.push(user.getName());
+                    }
+                    if (user.getEmail() !== existingUser.getEmail()) {
+                        changes.push('user_email = ?');
+                        params.push(user.getEmail());
+                    }
+                    if (user.getAuthProvider() !== existingUser.getAuthProvider()) {
+                        changes.push('user_auth_provider = ?');
+                        params.push(user.getAuthProvider());
+                    }
+                    if (user.getAvatarUrl() !== existingUser.getAvatarUrl()) {
+                        changes.push('user_avatar_url = ?');
+                        params.push(user.getAvatarUrl());
+                    }
+                    if (user.getPermissions() !== existingUser.getPermissions()) {
+                        changes.push('user_permissions = ?');
+                        params.push(user.getPermissions());
+                    }
+                    if (user.getPoints() !== existingUser.getPoints()) {
+                        changes.push('user_points = ?');
+                        params.push(user.getPoints());
+                    }
+                    if (user.getStrengths() !== existingUser.getStrengths()) {
+                        changes.push('user_strengths = ?');
+                        params.push(user.getStrengths());
+                    }
+                    if (user.getWeaknesses() !== existingUser.getWeaknesses()) {
+                        changes.push('user_weaknesses = ?');
+                        params.push(user.getWeaknesses());
+                    }
+                    if (user.getSuggestedExercises() !== existingUser.getSuggestedExercises()) {
+                        changes.push('user_suggested_exercises = ?');
+                        params.push(user.getSuggestedExercises());
+                    }
+                    if (JSON.parse(user.getStats() as string) !== JSON.parse(existingUser.getStats() as string)) {
+                        changes.push('user_stats = ?');
+                        params.push(user.getStats());
+                    }
+
+                    if (changes.length > 0 && this.db.dbObj !== null) {
+                        params.push(user.getId());
+                        const query = `UPDATE users SET ${changes.join(', ')} WHERE user_id = ?`;
+                        this.db.dbObj.run(query, params, (err) => {
+                            if (err) { reject(err); }
+                            else { resolve(); }
+                        });
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        } catch (err: any) {
+            throw new Error(`Error updating user: ${err}`);
+        }
+    }
+
 }

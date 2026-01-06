@@ -28,6 +28,18 @@ export class Database {
         });
     }
 
+    serialze() : Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (this.dbObj === null) {
+                reject(new Error('Database not connected'));
+                return;
+            }
+            this.dbObj.serialize(() => {
+                resolve();
+            });
+        });
+    }
+    
     getDbInstance() : sqlite3.Database {
         if (this.isConnected && this.dbObj !== null) {
             return this.dbObj;

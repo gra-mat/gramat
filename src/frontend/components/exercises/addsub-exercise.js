@@ -147,7 +147,7 @@ class AddSubExercise extends LitElement {
     if (this._loadingId === id) return;
     this._loadingId = id;
 
-    fetch(`/exercise/${id}`)
+    fetch(`/api/exercise/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();

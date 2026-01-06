@@ -70,42 +70,47 @@ const dbPath = './gramatDatabase.db';
 async function init() {
     const db = new Database(dbPath);
     await db.connect();
+    await db.serialze();
 
     const exerciseRepository = new ExerciseRepository(db);
     const exerciseController = new ExerciseController(exerciseRepository);
-    app.use("/exercise", exerciseRoutes(exerciseController));
+    app.use("/api/exercise", exerciseRoutes(exerciseController));
 
     const lessonRepository = new LessonRepository(db);
     const lessonController = new LessonController(lessonRepository);
-    app.use("/lesson", lessonRoutes(lessonController));
+    app.use("/api/lesson", lessonRoutes(lessonController));
 
     const achievementRepository = new AchievementRepository(db);
     const achievementController = new AchievementController(achievementRepository);
-    app.use("/achievement", achievementRoutes(achievementController));
+    app.use("/api/achievement", achievementRoutes(achievementController));
 
     const achievementUnlockRepository = new AchievementUnlockRepository(db);
     const achievementUnlockController = new AchievementUnlockController(achievementUnlockRepository);
-    app.use("/achievementUnlock", achievementUnlockRoutes(achievementUnlockController));
+    app.use("/api/achievementUnlock", achievementUnlockRoutes(achievementUnlockController));
     
     const chapterRepository = new ChapterRepository(db);
     const chapterController = new ChapterController(chapterRepository);
-    app.use("/chapter", chapterRoutes(chapterController));
+    app.use("/api/chapter", chapterRoutes(chapterController));
 
     const difficultyRepository = new DifficultyRepository(db);
     const difficultyController = new DifficultyController(difficultyRepository);
-    app.use("/difficulty", difficultyRoutes(difficultyController));
+    app.use("/api/difficulty", difficultyRoutes(difficultyController));
 
     const feedbackRepository = new FeedbackRepository(db);
     const feedbackController = new FeedbackController(feedbackRepository);
-    app.use("/feedback", feedbackRoutes(feedbackController));
+    app.use("/api/feedback", feedbackRoutes(feedbackController));
 
     const mathBranchRepository = new MathBranchRepository(db);
     const mathBranchController = new MathBranchController(mathBranchRepository);
-    app.use("/mathBranch", mathBranchRoutes(mathBranchController));
+    app.use("/api/mathBranch", mathBranchRoutes(mathBranchController));
 
     const userRepository = new UserRepository(db);
     const userController = new UserController(userRepository);
-    app.use("/user", userRoutes(userController));
+    app.use("/api/user", userRoutes(userController));
+
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        throw new Error("Google OAuth credentials are not set in environment variables.");
+    }
 
     passport.use(new GoogleStrategy({
         clientID: `${process.env.GOOGLE_CLIENT_ID}`,
@@ -142,15 +147,15 @@ async function init() {
         cb(null, user);
     });
 
-    app.get('/login', (req, res) => {
-        res.send('<a href="/auth/google">Login with Google</a>');
-    });
+    // app.get('/login', (req, res) => {
+    //     res.send('<a href="/auth/google">Login with Google</a>');
+    // });
 
     app.get('/auth/google', passport.authenticate('google', { scope: ['email', 'profile'] }));
 
     app.get('/auth/google/callback', passport.authenticate('google', {
         successRedirect: '/account.html',
-        failureRedirect: '/login'
+        failureRedirect: '/login.html'
     }));
 
     // app.get('/profile', isLoggedIn, (req : any, res) => {
@@ -166,25 +171,108 @@ async function init() {
                     console.error(err);
                 }
                 // console.log("Session destroyed");
-                res.redirect('/login');   
+                res.redirect('/login.html');   
             });
         });
     });
 
-}
-
-//wysylanie danych do fronta
-app.get('/api/me', (req: any, res) => {
-        if (req.user) {
-            const { password, ...safeUser } = req.user; 
-            res.json(safeUser);
-        } else {
-            res.status(401).json({ error: 'Not logged in' });
-        }
+    //wysylanie danych do fronta
+    app.get('/api/me', (req: any, res) => {
+            if (req.user) {
+                const { password, ...safeUser } = req.user; 
+                res.json(safeUser);
+            } else {
+                res.status(401).json({ error: 'Not logged in' });
+            }
     });
+
+    app.get('/api/me/unlockedAchievements', (req: any, res) => {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        const userId = req.user.id;
+
+        achievementUnlockRepository.getUnlockedAchievementsByUserId(userId).then((unlockedAchievements) => {
+            res.json(unlockedAchievements);
+        }).catch((err : Error) => {
+            res.status(500).json({ error: err.message });
+        });
+    });
+
+    app.post('/api/me/lessonCompleted', express.json(), async (req: any, res) => {
+    
+
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    const userId = req.user.id;
+
+    const lessonId = req.body.lessonId;
+    if (!lessonId) {
+        return res.status(400).json({ error: 'lessonId is required' });
+    }
+    const time = req.body.time;
+    if (!time) {
+        return res.status(400).json({ error: 'time is required' });
+    }
+    const accuracy = req.body.accuracy;
+    if (accuracy === undefined) {
+        return res.status(400).json({ error: 'accuracy is required' });
+    }
+    const xp = req.body.xp;
+    if (xp === undefined) {
+        return res.status(400).json({ error: 'xp is required' });
+    }
+
+    userRepository.checkIfUserExists(userId).then(async (exists) => {
+        if (!exists) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = await userRepository.getUserById(userId);
+        user.setPoints(user.getPoints() + xp);
+        let rawStats = user.getStats();
+        let stats = rawStats ? JSON.parse(rawStats) : { completedLessons: 0, perfectlyCompletedLessons: 0, math_branches: {} };
+        mathBranchRepository.getMathBranchByLessonId(lessonId).then(async (mathBranch) => {
+            if (mathBranch) {
+                const mathBranchId = mathBranch.getId().toString();
+                if (stats["math_branches"].hasOwnProperty(mathBranchId)) {
+                    if (stats["math_branches"][mathBranchId]["next-lesson"] == lessonId) {
+                        stats["math_branches"][mathBranchId]["next-lesson"] = parseInt(stats["math_branches"][mathBranchId]["next-lesson"]) + 1;
+                        stats["completedLessons"] += 1;
+                        if (accuracy === 100) {
+                            stats["perfectlyCompletedLessons"] += 1;
+                        }
+                    }
+                } else {
+                    stats["math_branches"][mathBranchId] = { "next-lesson": parseInt(lessonId) + 1 };
+                    stats["completedLessons"] += 1;
+                    if (accuracy === 100) {
+                        stats["perfectlyCompletedLessons"] += 1;
+                    }
+                }
+                user.setStats(JSON.stringify(stats));
+            } else {
+                return res.status(400).json({ error: 'math branch not found' });
+            }
+        });
+        await userRepository.updateUser(user).then(() => {
+            achievementUnlockRepository.updateAchievementUnlocks(userId).then(() => {
+                return res.json({ message: 'User stats updated successfully' });
+            }).catch((err : Error) => {
+                console.error(err);
+                return res.status(500).json({ error: 'Failed to update achievements' });
+            });
+        }).catch((err) => {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to update user stats' });
+        });
+    });
+
+    });
+}
 
 app.listen(PORT, () => {
     console.log(`Gramat is running on port ${PORT}`);
     init();
 });
-

@@ -4,6 +4,8 @@ class AccountView extends LitElement {
   static properties = {
     //userId: { type: Number, attribute: 'user-id' },
     userData: { type: Object },
+    achievementsData: { type: Object },
+    unlockedAchievementsData: { type: Object },
     isSettingsOpen: { type: Boolean },
     isMistakesOpen: { type: Boolean },
     isWeaknessesOpen: { type: Boolean },
@@ -15,6 +17,8 @@ class AccountView extends LitElement {
     super();
     this.loggedIn = false;
     this.userData = null;
+    this.achievementsData = null;
+    this.unlockedAchievementsData = null;
     this.isSettingsOpen = false;
     this.isMistakesOpen = false;
     this.isWeaknessesOpen = false;
@@ -378,7 +382,7 @@ class AccountView extends LitElement {
       
       if (res.status === 401) {
         this.loggedIn = false;
-        window.location.href = '/index.html'; 
+        window.location.href = '/login.html'; 
         return;
       }
       
@@ -392,6 +396,14 @@ class AccountView extends LitElement {
         'Zadanie 7: 7*2=15',
       ];
       this.userWeaknesses = ['Dodawanie do 10', 'Mnożenie liczb jednocyfrowych'];
+
+      const achRes = await fetch('/api/achievement/');
+      if (achRes.status !== 200) throw new Error("Error fetching achievements data");      
+      this.achievementsData = await achRes.json();
+
+      const unlAchRes = await fetch('/api/me/unlockedAchievements');
+      if (unlAchRes.status !== 200) throw new Error("Error fetching unlocked achievements data");
+      this.unlockedAchievementsData = await unlAchRes.json();
 
     } catch (err) {
       console.error(err);
@@ -422,7 +434,7 @@ class AccountView extends LitElement {
   }
 
   render() {
-    if (!this.userData) {
+    if (!this.userData || !this.achievementsData || !this.unlockedAchievementsData) {
       return html`<div class="header">Ładowanie danych konta...</div>`;
     }
     return html`
@@ -541,10 +553,19 @@ class AccountView extends LitElement {
         <div class="card">
           <div class="section-title">Osiągnięcia</div>
           <div class="achievement-grid">
-            <div class="achievement">obrazek here</div>
-            <div class="achievement">obrazek here</div>
-            <div class="achievement">obrazek here</div>
-            <div class="achievement">obrazek here</div>
+            ${this.achievementsData && this.unlockedAchievementsData
+              ? this.achievementsData.map(achievement => {
+                  const isUnlocked = this.unlockedAchievementsData.some(
+                    unlocked => unlocked.achievementId === achievement.id
+                  );
+                  return html`
+                    <div class="achievement" title="${achievement.name} - ${isUnlocked ? 'Odblokowane' : 'Zablokowane'}\n${achievement.description}">
+                      <img src="${achievement.imageUrl}" alt="${achievement.name}" style="filter: ${isUnlocked ? 'none' : 'grayscale(100%) brightness(50%)'}" />
+                    </div>
+                  `;
+                })
+              : html`<div>Ładowanie osiągnięć...</div>`
+            }
           </div>
         </div>
       </div>

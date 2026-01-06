@@ -62,7 +62,7 @@ class ExerciseCalculation extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     if (this.exerciseId) {
-      fetch(`http://localhost:3000/exercise/${this.exerciseId}`)
+      fetch(`http://localhost:3000/api/exercise/${this.exerciseId}`)
         .then(res => res.json())
         .then(data => {
           this.exercise = data.exerciseQuestion.toString();

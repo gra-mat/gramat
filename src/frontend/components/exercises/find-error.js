@@ -95,9 +95,8 @@ class FindErrorExercise extends LitElement {
   }
 
   check() {
-    this.status = (this.selected == this.correct)
-      ? "correct"
-      : "wrong";
+    this.status = (this.selected == this.correct) ? "correct" : "wrong";
+    return (this.selected == this.correct);
   }
 
   render() {

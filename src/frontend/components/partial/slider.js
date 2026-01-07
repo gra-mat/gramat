@@ -74,6 +74,7 @@ export class InputSlider extends LitElement {
 
   validate(answer) {
     this.status = this.value == answer ? "correct" : "wrong";
+    return this.value == answer;
   }
 
   render() {

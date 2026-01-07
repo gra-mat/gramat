@@ -46,7 +46,8 @@ class InMemorySliderExercise extends LitElement {
 
     check() {
         const el = this.shadowRoot.querySelector('x-input-slider');
-        el?.validate(this.solution);
+        const result = el?.validate(this.solution);
+        return result;
     }
 
     handleInput(e) {

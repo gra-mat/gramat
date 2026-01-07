@@ -11,7 +11,9 @@ const overlap = (a, b) =>
 class DragDrop extends LitElement {
     static properties = {
         dropped: { type: Array, attribute: false },
-        dragable: { type: Array }
+        dragable: { type: Array },
+        target: { type: Number },
+        status: { type: String },
     };
 
     static styles = css`
@@ -29,12 +31,14 @@ class DragDrop extends LitElement {
       padding: 15px;
       transition: all 0.3s;
     }
+
     .basket-container {
-        margin-top: 5%;
+      margin-top: 5%;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 10px;
+      padding: 15px;
     }
 
     .chips{
@@ -56,6 +60,7 @@ class DragDrop extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
+      
       font-size: 2rem;
       font-weight: bold;
       cursor: grab;
@@ -67,6 +72,36 @@ class DragDrop extends LitElement {
     .dragged {
         position: absolute;
     }
+
+    .chip {
+      width: 70px;
+      height: 70px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      user-select: none;
+      color: white;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      50% { transform: translateX(10px); }
+      75% { transform: translateX(-10px); }
+      100% { transform: translateX(0); }
+    }
+
+    .correct {
+      animation: shake 0.4s ease-in-out;
+      color: #81ff6b !important;     
+    }
+    
+    .wrong {
+      animation: shake 0.4s ease-in-out;
+      color: #f12222 !important;     
+    }
+    
+    .msg {
+      font-size: 2rem;
+    }
     `;
 
     constructor() {
@@ -74,12 +109,10 @@ class DragDrop extends LitElement {
         /** @type {number[]} */
         this.dropped = [];
         /** @type {number[]} */
-        this.dragable = [1, 2, 3];
-
+        this.dragable = [];
+        /** @type {"" | "correct" | "wrong"} */
+        this.status = "";
     }
-
-
-
 
     handleDrop(e) {
         const data = e.detail;
@@ -91,10 +124,18 @@ class DragDrop extends LitElement {
         }
     }
 
+    check() {
+        const sum = this.dropped.reduce((sum, x) => sum + x, 0);
+        const msg = this.shadowRoot.querySelector('.msg');
+        msg.innerHTML = `Zebrano: ${sum} z ${this.target}.`;
+        this.status = (sum == this.target) ? "correct" : "wrong";
+        return (sum == this.target);
+    }
+
     render() {
-        this.dragable = [1, 2, 3];
+        const sum = this.dropped.reduce((sum, x) => sum + x, 0);
         return html`
-              <div class="basket-container">
+            <div class="basket-container">
 
             <div class="drop-zone">
                 ${this.dropped?.map(
@@ -106,6 +147,9 @@ class DragDrop extends LitElement {
                     </div>`)
             }
             </div>
+            
+            <span class="msg ${this.status}"> Do zebrania: ${this.target}</span>
+
             <div class="chips">
                 ${this.dragable.map((x, i) => html`
                 <x-dragable @drag-released=${this.handleDrop} value="${x}" class="chip"></x-dragable>
@@ -142,6 +186,16 @@ class Dragable extends LitElement {
       width: 100%;
       height: 100%;
       touch-action: none;
+      background-color: #6c5ce7; 
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      font-size: 2rem;
+      font-weight: bold;
+      cursor: grab;
+
     }
   `;
 

@@ -47,9 +47,13 @@ class InMemoryKeyboardExercise extends LitElement {
     check() {
 
         const results = Array.from(this.solution).map((char, i) => this.given[i] === char);
-        this.statuses = results.every(s => s === true) ?
+        const result = results.every(s => s === true);
+        this.statuses = result ?
             results.map(() => "correct") :
             results.map(s => s ? "" : "wrong");
+
+        return result;
+
     }
 
     handleInput(e) {

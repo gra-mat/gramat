@@ -14,8 +14,8 @@
   <script type="module" src="components/exercises/in-memory-keyboard.js"></script>
   <script type="module" src="components/exercises/in-memory-slider.js"></script>
   <script type="module" src="components/exercises/find-error.js"></script>
-  <script type="module" src="components/exercises/drag-n-drop.js"></script>
   <script type="module" src="components/exercises/drag-drop.js"></script>
+  <script type="module" src="components/exercises/long-multiplication.js"></script>
   <style>
     html,
     body {
@@ -29,15 +29,14 @@
 
 <body>
   <x-exercise-view>
-    <!-- <x-in-memory-keyboard question="20 + 17 =" solution="37" given="37"></x-in-memory-keyboard> -->
-    <!-- <x-in-memory-slider question="20 + 17 =" solution="37" given="37" min="5" max="40" value="5"></x-in-memory-slider> -->
-    <!-- <x-find-error correct="1"></x-find-error> -->
-    <x-drag-drop></x-drag-drop>
+    <!-- <x-drag-drop target="10"></x-drag-drop>
+      <script>
+      document.querySelector('x-drag-drop').dragable = [1,1,1]  
+      </script>
+      -->
+    <x-long-multiplication a=31 b=15></x-long-multiplication>
   </x-exercise-view>
-  <script defer>
-    // const drag_drop = document.querySelector('x-drag-drop');
-    // drag_drop.variants = [10, 5, 4, 2]
-  </script>
+
 
 </body>
 

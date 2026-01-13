@@ -2,7 +2,7 @@ import { css, html, LitElement } from "../../lib/lit.min.js";
 
 class SummaryViewer extends LitElement {
   static properties = {
-    time: { type: String, reflect: true }, // Obsługuje zmiany atrybutów DOM
+    time: { type: String, reflect: true },
     accuracy: { type: String, reflect: true },
     xp: { type: String, reflect: true },
   };
@@ -12,125 +12,113 @@ class SummaryViewer extends LitElement {
     this.time = "0m 0s";
     this.accuracy = "0%";
     this.xp = "+0 XP";
+    this._seqTimers = [];
   }
 
   static styles = css`
-
     :host {
       display: flex;
       align-items: center;
       justify-content: center;
       height: 100vh;
       box-sizing: border-box;
-      padding: 16px; 
+      padding: 16px;
     }
-
-    :host(.hidden) {
-      display: none !important;
-    }
+    :host(.hidden) { display: none !important; }
 
     .summary-card {
-      background: #474777ff;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      padding: 20px;
       width: 100%;
-      max-width: 400px;
-      margin: 0 auto;
-      font-family: Arial, sans-serif;
-      text-align: center;
+      max-width: 420px;
+      background: #3b3f6b;
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      overflow: hidden;
     }
-    .summary-title {
-      font-size: 1.5rem;
-      color: #a8a8faff;
-      margin-bottom: 40px;
-    }
+
+    .summary-title { margin: 0 0 16px 0; color: #e6e8ff; font-weight: 700; }
+
     .summary-section {
       display: flex;
+      gap: 12px;
       align-items: center;
-      background: #62628aff;
-      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
       padding: 10px;
-      margin-bottom: 20px;
-      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .summary-icon {
-      width: 40px;
-      height: 40px;
-      margin-right: 10px;
-    }
-    .summary-content p {
-      margin: 0;
-      font-size: 1.2rem;
-      color: white;
-    }
-    
-    .button-group .btn {
-      width: 49%;
-      padding: 20px 0;
-      border: none;
       border-radius: 8px;
+      margin-bottom: 12px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 320ms ease, transform 320ms ease;
+    }
+    .summary-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .summary-icon { width: 36px; height: 36px; flex: 0 0 36px; }
+    .summary-content p { margin: 0; font-size: 1rem; color: #f6f7ff; }
+
+    .button-group { display:flex; gap:8px; margin-top: 8px; }
+    .btn {
+      flex: 1 1 50%;
+      padding: 12px 0;
+      border-radius: 8px;
+      border: none;
       cursor: pointer;
-      font-weight: bold;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
-      color: white;
-      font-size: 1.5rem;
-      box-shadow: 0 5px 0 rgba(0,0,0,0.15);
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
+      font-weight: 700;
     }
-
-    .button-group .btn.repeat {
-      background: #d6bb4eff;
-      box-shadow: 0 5px 0 #b28f00;
-      color: black;
-    }
-    .button-group .btn.repeat:hover {
-      background: #ffd84d;
-    }
-    .button-group .btn.repeat:active {
-      transform: translateY(4px);
-      box-shadow: 0 3px 0 #b28f00;
-    }
-    .button-group .btn.next {
-      background: #4caf50;
-      box-shadow: 0 5px 0 #357a38;
-      color: black;
-    }
-    .button-group .btn.next:hover {
-      background: #66bb6a;
-    }
-    .button-group .btn.next:active {
-      transform: translateY(4px);
-      box-shadow: 0 3px 0 #357a38;
-    }
-
+    .btn.repeat { background: #ffd84d; color: #111; }
+    .btn.next { background: #66bb6a; color: #111; }
   `;
 
   updated(changedProperties) {
-    console.log("SummaryViewer - Zmiana właściwości lub atrybutu:", changedProperties);
+
+    if (changedProperties.has('time')) {
+
+      if (!this.classList.contains('hidden')) {
+        this._animateSections();
+      }
+    }
+  }
+
+  _clearSeqTimers() {
+    this._seqTimers.forEach(t => clearTimeout(t));
+    this._seqTimers = [];
+  }
+
+  _animateSections() {
+    this._clearSeqTimers();
+    const sections = Array.from(this.shadowRoot.querySelectorAll('.summary-section'));
+    sections.forEach(s => s.classList.remove('visible'));
+
+    sections.forEach((sec, i) => {
+      const t = setTimeout(() => sec.classList.add('visible'), i * 500 + 80);
+      this._seqTimers.push(t);
+    });
   }
 
   render() {
     return html`
-      <div class="summary-card">
+      <div class="summary-card" role="dialog" aria-label="Podsumowanie lekcji">
         <h2 class="summary-title">Podsumowanie lekcji</h2>
+
         <div class="summary-section">
-          <img class="summary-icon" src="icons/timer.svg" alt="Timer Icon" />
-          <div class="summary-content"><p>Czas: ${this.time}
-          </div>
+          <img class="summary-icon" src="icons/timer.svg" alt="Timer" />
+          <div class="summary-content"><p>Czas: ${this.time}</p></div>
         </div>
+
         <div class="summary-section">
-          <img class="summary-icon" src="icons/accuracy.svg" alt="Accuracy Icon" />
-          <div class="summary-content">
-            <p>Dokładność: ${this.accuracy}
-          </div>
+          <img class="summary-icon" src="icons/accuracy.svg" alt="Accuracy" />
+          <div class="summary-content"><p>Dokładność: ${this.accuracy}</p></div>
         </div>
+
         <div class="summary-section">
-          <img class="summary-icon" src="icons/xp.svg" alt="XP Icon" />
-          <div class="summary-content"><p>${this.xp}
-          </div>
+          <img class="summary-icon" src="icons/xp.svg" alt="XP" />
+          <div class="summary-content"><p>${this.xp}</p></div>
         </div>
+
         <div class="button-group">
           <button class="btn repeat" @click=${() => this._repeatLesson()}>Powtórz</button>
           <button class="btn next" @click=${() => this._proceed()}>Dalej</button>
@@ -144,22 +132,17 @@ class SummaryViewer extends LitElement {
     const lessonId = params.get('lessonId');
     if (lessonId) window.location.href = `lesson.html?lessonId=${encodeURIComponent(lessonId)}`;
     else window.location.reload();
-
-    console.log("Powtórz lekcje");
   }
 
   _proceed() {
     const params = new URLSearchParams(window.location.search);
     const lessonId = params.get('lessonId');
-    
     this.dispatchEvent(new CustomEvent('lesson-proceed', {
       detail: { lessonId },
       bubbles: true,
       composed: true
     }));
-
     window.location.href = 'index.html';
-    console.log("Przejdź dalej");
   }
 }
 

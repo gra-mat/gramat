@@ -17,7 +17,6 @@ class AddSubExercise extends LitElement {
     sliderMin: { type: Number },
     sliderMax: { type: Number },
     statuses: { attribute: false } 
-
   };
 
   static styles = css`
@@ -93,9 +92,11 @@ class AddSubExercise extends LitElement {
         correct = (this.given === this.solution)
         if (correct) {
             this.shadowRoot.getElementById('mark').show();
+
         } else {
             const el = this.shadowRoot.querySelector('x-input-slider');
-            if(el) el.showError();
+            if(el && typeof el.showError === 'function') el.showError();
+            setTimeout(() => this._dispatchAnswerComplete(false), 1000);
         }
     } 
     else if (this.config.answer_type === 'drag-drop') {
@@ -104,7 +105,8 @@ class AddSubExercise extends LitElement {
             this.shadowRoot.getElementById('mark').show();
         } else {
             const el = this.shadowRoot.querySelector('x-drag-drop');
-            if(el) el.showError();
+            if(el && typeof el.showError === 'function') el.showError();
+            setTimeout(() => this._dispatchAnswerComplete(false), 1000);
         }
     }
     else if (this.config.answer_type === 'find-error') {
@@ -113,10 +115,11 @@ class AddSubExercise extends LitElement {
             this.shadowRoot.getElementById('mark').show();
         } else {
             const el = this.shadowRoot.querySelector('x-find-error');
-            if(el) el.showError(); 
+            if(el && typeof el.showError === 'function') el.showError();
+            setTimeout(() => this._dispatchAnswerComplete(false), 1000);
         }
     }
-    // keypad standardowo
+
     else {
         this.statuses = Array.from(this.solution).map((char, i) =>
             this.given[i] === char ? "correct" : "wrong"
@@ -125,15 +128,34 @@ class AddSubExercise extends LitElement {
         if (isAllCorrect && this.given.length === this.solution.length) {
             this.shadowRoot.getElementById('mark').show();
             correct = true;
-        } else correct = false;
+        } else {
+            correct = false;
+            const firstField = this.shadowRoot.querySelector('x-field');
+            if (firstField && typeof firstField.showError === 'function') firstField.showError();
+            setTimeout(() => this._dispatchAnswerComplete(false), 1000);
+        }
     }
 
     this.isCorrect = correct;
 
+    if (correct) {
+      const mark = this.shadowRoot.getElementById('mark');
+      if (!mark) {
+        setTimeout(() => this._dispatchAnswerComplete(true), 1000);
+      }
+    }
+
     setTimeout(() => {
       this._checkInProgress = false;
-    }, 2000); 
+    }, 3200);
+  }
 
+  _dispatchAnswerComplete(correct) {
+    this.dispatchEvent(new CustomEvent('answer-complete', {
+      detail: { correct },
+      bubbles: true,
+      composed: true
+    }));
   }
 
   connectedCallback() {
@@ -157,17 +179,16 @@ class AddSubExercise extends LitElement {
         this.exerciseId = id;
         this.exercise = data.exerciseQuestion?.toString() || 'Brak pytania';
         this.solution = data.exerciseAnswer?.toString() || '';
+
         try {
-          if (data.exerciseProperties) {
-            this.config = JSON.parse(data.exerciseProperties);
-          } else {
-            this.config = { question_type: "text_only", answer_type: "keypad" };
-          }
-          if (this.config.answer_type === 'slider') {
-            this.calculateRange(this.solution);
-          } else {
-            this.given = "";
-          }
+          if (data.exerciseProperties) this.config = JSON.parse(data.exerciseProperties);
+          else this.config = { question_type: "text_only", answer_type: "keypad" };
+
+          if (this.config.answer_type === 'slider') this.calculateRange(this.solution);
+          else this.given = "";
+
+          this.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+
         } catch (err) {
           console.error('Blad JSON:', err);
           this.config = { question_type: "text_only", answer_type: "keypad" };

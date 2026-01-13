@@ -68,15 +68,15 @@
 
     const timerInterval = setInterval(updateTimer, 1000);
 
-    view.addEventListener("next-exercise", () => {
-
+    view.addEventListener("next-exercise", async () => {
       const wasCorrect = !!addSub.isCorrect;
       if (wasCorrect) correctAnswers++;
       else wrongAnswers++;
 
-      idx++; 
+      idx++;
 
       if (idx >= exercises.length) {
+
         const summary = document.querySelector("#summary");
         if (!summary) {
           console.error("Nie znaleziono elementu summary!");
@@ -93,35 +93,34 @@
         const accuracy = Math.round((correctAnswers / total) * 100);
         const xp = (correctAnswers * 10).toFixed(0);
 
-        
         summary.setAttribute("time", `${minutes}m ${seconds}s`);
         summary.setAttribute("accuracy", `${accuracy}%`);
         summary.setAttribute("xp", `+${xp} XP`);
-        console.log(correctAnswers);
-        console.log(total);
         summary.classList.remove("hidden");
 
         clearInterval(timerInterval);
 
-        fetch("/api/me/lessonCompleted", {
+        await fetch("/api/me/lessonCompleted", {
           method: "POST",
           credentials: "include",
           body: JSON.stringify({
-            "lessonId": lessonId,
-            "time": elapsedTime,
-            "accuracy": accuracy,
-            "xp": Number(xp)
+            lessonId: lessonId,
+            time: elapsedTime,
+            accuracy: accuracy,
+            xp: Number(xp)
           }),
           headers: {
             "Content-type": "application/json; charset=UTF-8"
           }
         });
         console.log("Lekcja zakończona");
-
         return;
       }
 
-      addSub.setAttribute("exercise-id", String(exercises[idx].id));
+      
+      setTimeout(() => {
+        addSub.setAttribute("exercise-id", String(exercises[idx].id));
+      }, 350);
     });
   });
 </script>

@@ -1,4 +1,4 @@
-# Raport grupowy – Sprint 6
+# Raport grupowy – Sprint 7
 Okres: 07.01.2026
 
 Zespół: Granat

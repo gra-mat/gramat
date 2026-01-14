@@ -16,6 +16,9 @@
   <script type="module" src="components/exercises/find-error.js"></script>
   <script type="module" src="components/exercises/drag-drop.js"></script>
   <script type="module" src="components/exercises/long-multiplication.js"></script>
+  <script type="module" src="components/exercises/long-division.js"></script>
+  <script type="module" src="components/campaign-view.js"></script>
+
   <style>
     html,
     body {
@@ -28,16 +31,7 @@
 </head>
 
 <body>
-  <x-exercise-view>
-    <!-- <x-drag-drop target="10"></x-drag-drop>
-      <script>
-      document.querySelector('x-drag-drop').dragable = [1,1,1]  
-      </script>
-      -->
-    <x-long-multiplication a=31 b=15></x-long-multiplication>
-  </x-exercise-view>
-
-
+  <x-exercise-selection></x-exercise-selection>
 </body>
 
 </html>

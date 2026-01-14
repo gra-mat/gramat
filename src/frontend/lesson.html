@@ -37,7 +37,8 @@
     const lessonId = params.get('lessonId');
     if (!lessonId) return;
 
-    const r = await fetch(`/api/lesson/${lessonId}`);
+    const r = await fetch(`/api/me/lessonQuestions/${lessonId}`);
+    //const r = await fetch(`/api/lesson/${lessonId}`);
     if (!r.ok) { console.error('Nie można pobrać lekcji', r.status); return; }
     const data = await r.json();
     const exercises = data.exercises || [];
@@ -53,7 +54,8 @@
     view && view.setAttribute('progress-step', String(100 / exercises.length));
 
     let idx = 0;
-    addSub.setAttribute('exercise-id', String(exercises[idx].id));
+    addSub.exerciseId = exercises[idx].id;
+    // addSub.setAttribute('exercise-id', String(exercises[idx].id));
 
     const updateTimer = () => {
       const elapsedTime = Date.now() - startTime;

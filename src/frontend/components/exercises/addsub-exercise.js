@@ -169,7 +169,8 @@ class AddSubExercise extends LitElement {
     if (this._loadingId === id) return;
     this._loadingId = id;
 
-    fetch(`/api/exercise/${id}`)
+    // fetch(`/api/exercise/${id}`)
+    fetch("/api/me/nextQuestion")
       .then(res => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
@@ -182,17 +183,17 @@ class AddSubExercise extends LitElement {
 
         try {
           if (data.exerciseProperties) this.config = JSON.parse(data.exerciseProperties);
-          else this.config = { question_type: "text_only", answer_type: "keypad" };
+      else this.config = { question_type: "text_only", answer_type: "keypad" };
 
-          if (this.config.answer_type === 'slider') this.calculateRange(this.solution);
-          else this.given = "";
+      if (this.config.answer_type === 'slider') this.calculateRange(this.solution);
+      else this.given = "";
 
-          this.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+      this.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
 
-        } catch (err) {
-          console.error('Blad JSON:', err);
-          this.config = { question_type: "text_only", answer_type: "keypad" };
-        }
+    } catch (err) {
+        console.error('Blad JSON:', err);
+        this.config = { question_type: "text_only", answer_type: "keypad" };
+    }
       })
       .catch(err => {
         console.error('Blad _loadExercise:', err);
@@ -200,7 +201,7 @@ class AddSubExercise extends LitElement {
         this.config = { answer_type: "error" }; 
       })
       .finally(() => {
-        this._loadingId = null;
+    this._loadingId = null;
       });
   }
 

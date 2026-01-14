@@ -187,6 +187,35 @@ async function init() {
             }
     });
 
+    app.get("/api/me/lessonQuestions/:id", async (req, res) => {
+        const lessonId = req.params.id;
+        lessonRepository.getLesson(parseInt(lessonId)).then((lesson) => {
+            (req.session as any).currentLesson = lesson;
+            (req.session as any).currentQuestionIndex = 0;
+
+            const result = {
+                id: lesson.id,
+                name: lesson.name,
+                chapterId: lesson.chapterId,
+                exercises: lesson.exercises.map(exercise => ({
+                    id: exercise.id,
+                    lessonId: exercise.lessonId,
+                    difficultyId: exercise.difficultyId,
+                    exerciseQuestion: exercise.exerciseQuestion,
+                    exerciseProperties: exercise.exerciseProperties,
+                    exerciseAnswer: exercise.exerciseAnswer
+                }))
+            };
+            res.json(result);
+        })
+    });
+
+    app.get("/api/me/nextQuestion", async (req, res) => {
+        const result = (req.session as any).currentLesson.exercises[(req.session as any).currentQuestionIndex];
+        (req.session as any).currentQuestionIndex += 1;
+        res.json(result);
+    });
+
     app.get('/api/me/unlockedAchievements', (req: any, res) => {
         if (!req.user || !req.user.id) {
             return res.status(401).json({ error: 'Not logged in' });
@@ -199,10 +228,9 @@ async function init() {
             res.status(500).json({ error: err.message });
         });
     });
-
+    
     app.post('/api/me/lessonCompleted', express.json(), async (req: any, res) => {
     
-
     if (!req.user || !req.user.id) {
         return res.status(401).json({ error: 'Not logged in' });
     }

@@ -22,83 +22,80 @@ export class Exercise {
 
     prepareRandomValuesExercise(): void {
 
-        if (!this.randomValuesConditions) {
-            return;
-        }
-
-        const variables = this.parseRandomValuesConditions();
-        const randomValues = this.generateRandomValues(variables);
-        this.exerciseQuestion = this.substituteVariables(this.exerciseQuestion, randomValues);
-        this.exerciseAnswer = this.evaluateExpression(this.exerciseQuestion);
-    }
-
-
-    private parseRandomValuesConditions(): Map<string, { min: number; max: number; type: string }> {
-        if (!this.randomValuesConditions) {
-            throw new Error('No random values conditions provided');
-        }
-
-    const variables = new Map();
-    
-    const parts = this.randomValuesConditions.split(' ');
-    
-    let currentVariables: string[] = [];
-    let min = 0, max = 0, type = 'ℤ';
-    
-    for (const part of parts) {
-        if (!part.includes('ℤ') && !part.includes('ℝ')) {
-            const [vars, range] = part.split('∈');
-            currentVariables = vars.split(',').map(v => v.trim());
-            
-            const rangeMatch = range.match(/<(\d+);(\d+)>/);
-            if (rangeMatch) {
-                min = parseInt(rangeMatch[1]);
-                max = parseInt(rangeMatch[2]);
-            }
-        } else if (part.includes('ℤ')) {
-            type = 'ℤ';
-            currentVariables.forEach(v => {
-                variables.set(v, { min, max, type });
-            });
-        } else if (part.includes('ℝ')) {
-            type = 'ℝ';
-            currentVariables.forEach(v => {
-                variables.set(v, { min, max, type });
-            });
-        }
-    }
-    
-    return variables;
-}
-
-    private generateRandomValues(variables: Map<string, { min: number; max: number; type: string }>): Map<string, number> {
-        const randomValues = new Map();
+        // Wylosowanie wartosci zmiennych
+        const randomValues = this.getRandomValues();
         
-        variables.forEach((range, varName) => {
-            if (range.type === 'ℤ') {
-                randomValues.set(varName, Math.floor(Math.random() * (range.max - range.min + 1)) + range.min);
-            } else if (range.type === 'ℝ') {
-                randomValues.set(varName, Math.random() * (range.max - range.min) + range.min);
-            }
-        });
+        // Podstawienie wylosowanych wartosci do pytania
+        const variables = (JSON.parse(this.randomValuesConditions as string) as any)?.variables
+        this.exerciseQuestion = this.placeRandomValuesIntoQuestion(this.exerciseQuestion, variables, randomValues);
         
-        return randomValues;
+        // Obliczenie odpowiedzi
+        this.exerciseAnswer = this.answerEvaluation(this.exerciseQuestion);
     }
 
-    private substituteVariables(expression: string, randomValues: Map<string, number>): string {
-        let result = expression;
-        randomValues.forEach((value, varName) => {
-            result = result.replace(new RegExp(varName, 'g'), value.toString());
-        });
+    getRandomValues(): Number[] {
+        const variableValues = [];
+        let rvConditions = JSON.parse(this.randomValuesConditions as string);
+        // Sprawdzenie czy nie ma dodatkowych warunkow do wylosowania odpowiedzi
+        // TODO: obsluga dodatkowych warunkow
+        if (rvConditions != null && (rvConditions as any)?.additional == "") {
+            for (let i = 0; i < (rvConditions as any)?.variables.length; i++) {
+                // Sprawdzenie z jakiego zbioru liczb losujemy (int, float, etc.)
+                if ((rvConditions as any)?.setsOfNumbers[i] == 'int') {
+                    const min = (rvConditions as any)?.ranges[i][0];
+                    const max = (rvConditions as any)?.ranges[i][1];
+                    const minInlude = (rvConditions as any)?.ranges[i][2][0];
+                    const maxInlude = (rvConditions as any)?.ranges[i][2][1];
+                    // Sprawdzenie czy przedzial jest domkniety (c) czy otwarty (o) z lewej i prawej strony
+                    if (minInlude == 'c' && maxInlude == 'c') {
+                        variableValues.push(Math.floor(Math.random() * (max - min + 1)) + min);
+                    } else if (minInlude == 'c' && maxInlude == 'o') {
+                        variableValues.push(Math.floor(Math.random() * (max - min)) + min);
+                    } else if (minInlude == 'o' && maxInlude == 'c') {
+                        variableValues.push(Math.floor(Math.random() * (max - min)) + min + 1);
+                    } else if (minInlude == 'o' && maxInlude == 'o') {
+                        variableValues.push(Math.floor(Math.random() * (max - min - 1)) + min + 1);
+                    } else {
+                        variableValues.push(Math.floor(Math.random() * (max - min + 1)) + min);
+                    }
+                } else if ((rvConditions as any)?.setsOfNumbers[i] == 'float') {
+                    const min = (rvConditions as any)?.ranges[i][0];
+                    const max = (rvConditions as any)?.ranges[i][1];
+                    const minInlude = (rvConditions as any)?.ranges[i][2][0];
+                    const maxInlude = (rvConditions as any)?.ranges[i][2][1];
+                    if (minInlude == 'c' && maxInlude == 'c') {
+                        variableValues.push(Math.random() * (max - min + 1) + min);
+                    } else if (minInlude == 'c' && maxInlude == 'o') {
+                        variableValues.push(Math.random() * (max - min) + min);
+                    } else if (minInlude == 'o' && maxInlude == 'c') {
+                        variableValues.push(Math.random() * (max - min) + min + 1);
+                    } else if (minInlude == 'o' && maxInlude == 'o') {
+                        variableValues.push(Math.random() * (max - min - 1) + min + 1);
+                    } else {
+                        variableValues.push(Math.random() * (max - min + 1) + min);
+                    }
+                }
+            }
+        }
+        return variableValues;
+    }
+
+    placeRandomValuesIntoQuestion(question: string, variables: any[], randomValues: Number[]): string {
+        let result = question;
+        for (let i = 0; i < variables.length; i++) {
+            const variableName = variables[i];
+            const value = randomValues[i];
+            result = result.replace(new RegExp(variableName, 'g'), value.toString());
+        }
         return result;
     }
 
-    private evaluateExpression(expression: string): string {
+    answerEvaluation(question: string): string {
         try {
-            const result = Function('"use strict"; return (' + expression + ')')();
+            const result = Function('"use strict"; return (' + question + ')')();
             return result.toString();
         } catch (err) {
-            throw new Error(`Error evaluating expression: ${expression}`);
+            throw new Error(`Error evaluating expression: ${question}`);
         }
     }
 

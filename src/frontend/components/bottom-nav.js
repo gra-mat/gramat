@@ -52,10 +52,10 @@ class BottomNav extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._updateVisibility();
-
     this._applyBodyPadding(true);
 
     window.addEventListener('popstate', this._onLocationChangeBound = () => this._updateVisibility());
+    
   }
 
   disconnectedCallback() {
@@ -67,15 +67,13 @@ class BottomNav extends LitElement {
   _applyBodyPadding(enable) {
     try {
       if (enable) {
-
         const current = parseInt(getComputedStyle(document.body).paddingBottom || "0", 10) || 0;
         if (current < 80) document.body.style.paddingBottom = "80px";
       } else {
-
         const current = parseInt(getComputedStyle(document.body).paddingBottom || "0", 10) || 0;
         if (current <= 80) document.body.style.paddingBottom = "";
       }
-    } catch (e) { }
+    } catch (e) {}
   }
 
   _updateVisibility() {
@@ -91,34 +89,26 @@ class BottomNav extends LitElement {
     }
   }
 
-  _goHome() {
-    window.location.href = 'index.html';
-  }
-
-  _goLearn() {
-    window.location.href = 'lesson.html';
-  }
-
-  _goAccount() {
-    window.location.href = 'account.html';
-  }
-
-  _openSettings() {
-    this.dispatchEvent(new CustomEvent('open-settings', { bubbles: true, composed: true }));
+  navigate(viewName) {
+    this.dispatchEvent(new CustomEvent('navigate', { 
+      detail: viewName,
+      bubbles: true, 
+      composed: true 
+    }));
   }
 
   render() {
     return html`
-      <button class="nav-btn" @click=${this._goHome} aria-label="Home">
+      <button class="nav-btn" @click=${() => this.navigate('home')} aria-label="Home">
         <img src="icons/home.svg" alt="Home">
       </button>
-      <button class="nav-btn" @click=${this._goLearn} aria-label="Learn">
+      <button class="nav-btn" @click=${() => this.navigate('learn')} aria-label="Learn">
         <img src="icons/learn.svg" alt="Learn">
       </button>
-      <button class="nav-btn" @click=${this._goAccount} aria-label="Account">
+      <button class="nav-btn" @click=${() => this.navigate('profile')} aria-label="Account">
         <img src="icons/account.svg" alt="Account">
       </button>
-      <button class="nav-btn" @click=${this._openSettings} aria-label="Settings">
+      <button class="nav-btn" @click=${() => this.navigate('settings')} aria-label="Settings">
         <img src="icons/settings.svg" alt="Settings">
       </button>
     `;

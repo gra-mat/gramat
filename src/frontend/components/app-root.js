@@ -17,7 +17,7 @@ export class AppRoot extends LitElement {
     :host {
       display: block;
       height: 100vh;
-      width: 100vw;
+      width: 100%;
       background: #373a68ff;
       margin: 0;
       overflow: hidden;
@@ -33,6 +33,7 @@ export class AppRoot extends LitElement {
   async connectedCallback() {
     super.connectedCallback();
     await this.checkSession();
+    window.addEventListener('navigate', (e) => this.handleNavigate(e));
   }
 
   async checkSession() {
@@ -54,7 +55,8 @@ export class AppRoot extends LitElement {
   }
 
   handleExitLesson() {
-    this.currentView = 'home';
+    console.log("test2")
+    this.currentView = 'learn';
     this.activeLessonId = null; 
   }
 
@@ -93,8 +95,8 @@ export class AppRoot extends LitElement {
       case 'exercise':
         return html`
           <x-exercise-view 
-            .lessonId="${this.activeLessonId}"
-            @exit-lesson="${(e) => this.handleExitLesson(e)}"> 
+            .lessonId="${this.activeLessonId}
+            @exit-lesson="${this.handleExitLesson}"> 
           </x-exercise-view>
         `;
 

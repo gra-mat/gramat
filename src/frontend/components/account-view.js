@@ -29,16 +29,17 @@ class AccountView extends LitElement {
 
   static styles = css`
     :host {
-        min-height: 100vh;
-        min-width: 100vw;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #373a68ff;
-        font-family: system-ui, sans-serif;
-        color: white;
-        box-sizing: border-box;
-        padding: 18px 12px;
+      display: block;
+      background: #373a68ff;
+      font-family: system-ui, sans-serif;
+      color: white;
+      box-sizing: border-box;
+      padding: 18px 12px;
+      width: 100%;
+      height: 100%;
+      max-width: 100vw;
+      min-height: 100dvh;
+      overflow-x: hidden;
     }
 
     .container {

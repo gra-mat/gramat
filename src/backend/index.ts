@@ -47,8 +47,9 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
 import dotenv from 'dotenv';
 
+import fetch from "node-fetch";
+
 const app = express();
-dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
@@ -59,13 +60,14 @@ app.use(passport.session());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(express.static(path.join(__dirname, '../frontend')));
+dotenv.config({path: __dirname + '/.env'});
 
-const dbPath = './gramatDatabase.db';
+app.use(express.static(path.join(__dirname, '../frontend'), { dotfiles: 'allow' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// function isLoggedIn(req : any, res : any, next : any) {
-//   req.user ? next() : res.sendStatus(401);
-// }
+const dbPath = path.join(__dirname, 'gramatDatabase.db');
+
 
 async function init() {
     const db = new Database(dbPath);
@@ -112,10 +114,15 @@ async function init() {
         throw new Error("Google OAuth credentials are not set in environment variables.");
     }
 
+    let callbackURLarg = `http://localhost:${PORT}/auth/google/callback`;
+    if (process.env.APP_ENV && process.env.APP_ENV === "production" && process.env.RAILWAY_PUBLIC_DOMAIN) {
+        callbackURLarg = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}/auth/google/callback`;
+    }
+
     passport.use(new GoogleStrategy({
         clientID: `${process.env.GOOGLE_CLIENT_ID}`,
         clientSecret: `${process.env.GOOGLE_CLIENT_SECRET}`,
-        callbackURL: `http://localhost:${PORT}/auth/google/callback`
+        callbackURL: `${callbackURLarg}`
     },
     async function(accessToken : any, refreshToken : any, profile : any, cb : any) {
         if (await userRepository.checkIfUserExists(profile.id)) {
@@ -148,9 +155,9 @@ async function init() {
         cb(null, user);
     });
 
-    // app.get('/login', (req, res) => {
-    //     res.send('<a href="/auth/google">Login with Google</a>');
-    // });
+    app.get('/login', (req, res) => {
+        res.redirect('/login.html');   
+    });
 
     app.get('/auth/google', passport.authenticate('google', { scope: ['email', 'profile'] }));
 
@@ -159,10 +166,65 @@ async function init() {
         failureRedirect: '/login'
     }));
 
-    // app.get('/profile', isLoggedIn, (req : any, res) => {
-    //     console.log(req.user);
-    //     res.send(`<img src="${req.user.avatarUrl}"/> <br><br> Hello, ${req.user.name} <br><br> <a href="/logout">Logout</a>`);
-    // });
+    app.post("/auth/mobile/google", async (req, res, next) => {
+        try {
+            const { code } = req.body;
+
+            const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams([
+                ["code", code],
+                ["client_id", process.env.GOOGLE_CLIENT_ID || ""],
+                ["client_secret", process.env.GOOGLE_CLIENT_SECRET || ""],
+                ["redirect_uri", callbackURLarg],
+                ["grant_type", "authorization_code"],
+            ]),
+            });
+
+            const tokens = await tokenRes.json() as any;
+
+            const profileRes = await fetch(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            {
+                headers: { Authorization: `Bearer ${tokens.access_token}` },
+            }
+            );
+
+            const profile = await profileRes.json() as any;
+
+            if (await userRepository.checkIfUserExists(profile.id)) {
+                const user = await userRepository.getUserById(profile.id);
+                req.login(user, (err) => {
+                if (err) return next(err);
+
+                res.json({
+                    success: true,
+                    user: {
+                    id: user.id,
+                    email: user.email,
+                    },
+                });
+                });
+            } else {
+                const user = await userRepository.createUserWithGoogle(profile.id, profile.displayName, profile.emails[0].value, profile.photos[0].value);
+                req.login(user, (err) => {
+                if (err) return next(err);
+
+                res.json({
+                    success: true,
+                    user: {
+                    id: user.id,
+                    email: user.email,
+                    },
+                });
+                });
+            }
+
+        } catch (err) {
+            next(err);
+        }
+        });
 
     app.get('/logout', (req, res) => {
         req.logout((err) => {
@@ -171,7 +233,6 @@ async function init() {
                 if (err) {
                     console.error(err);
                 }
-                // console.log("Session destroyed");
                 res.redirect('/login.html');   
             });
         });

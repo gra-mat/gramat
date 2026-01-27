@@ -1,0 +1,22 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.gramat.gramatwebview",
+      "sha256_cert_fingerprints": [
+        "4E:36:CF:6E:3D:3B:70:3B:46:12:4D:EE:32:0E:80:03:10:12:1A:7C:D6:FD:3B:FC:A2:EE:EB:66:F7:0C:B5:22"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.gramat.gramatwebview",
+      "sha256_cert_fingerprints": [
+        "50:A3:31:99:C9:47:D8:47:7F:A8:65:E4:56:7E:6D:30:5D:0C:6D:A4:90:CD:98:3A:7D:7B:92:76:46:7B:5F:85"
+      ]
+    }
+  }
+]

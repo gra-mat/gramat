@@ -355,7 +355,7 @@ class ExerciseView extends LitElement {
   }
 
   tryExit() {
-    window.location.href = 'http://localhost:3000/';
+    window.location.href = '/';
     // this.dispatchEvent(new CustomEvent('exit-lesson', {
     //   bubbles: true,
     //   composed: true

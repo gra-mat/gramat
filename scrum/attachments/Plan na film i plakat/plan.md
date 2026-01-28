@@ -1,6 +1,6 @@
 <h1>Film:</h1>
 
-[Narrator i duze napisy]
+[Narrator i duze napisy, muzyka]
 
 - Na poczatku przebitki z roznych typow zadan na obu urzadzeniach:
 	- Widok mobilny (w scenie 3D z telefonem [lekka animacja obracania itp.]) oraz desktopowy
@@ -10,6 +10,9 @@
 - Zakladka konto (showcase statow, achievementow, lekcji)
 - Widok kampanii
 - Wypis featurow
+- Proces tworzenia
+	- Screeny z Kanbana
+ 	- Nagrac stare wersje aplikacji (wziac wersje z jakiegos starego commita, pokazac przebitki progressu produktu)
 - Na koncu logo, nazwa i download now
 
 

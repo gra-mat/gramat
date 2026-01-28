@@ -16,7 +16,7 @@ Postęp prac:
 | Zadanie | Odpowiedzialny | Status | Komentarz |
 |----------|----------------|--------|------------|
 | Merge {frontend-refactor} do maina | Łukasz | W trakcie | W poniedzialek bedzie dzialalo |
-| Paczka aplikacji na telefon | Piotr | Zakończone | WebView nie zadzialal, wiec trzeba bylo napisac aplikacje samemu. Na ten moment dziala jedynie logowanie przez chrome'a na androidzie |
+| Paczka aplikacji na telefon | Piotr | Zakończone | WebView nie zadzialal, wiec trzeba bylo napisac aplikacje samemu. Na ten moment na androidzie dziala jedynie logowanie przez chrome'a  |
 | Naprawa wcześniej udokumentowanych bugów i małe poprawki we front-endzie | Mateusz | W trakcie | Naprawiony bottom nav, skalowanie nava w widoku na telefon i wystajacy bialy pasek z dolu w zakladce account. Zmieniony bottom nav, aby przechodzil dynamicznie do zakladek |
 
 Retrospekcja:

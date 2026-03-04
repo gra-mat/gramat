@@ -6,5 +6,5 @@
     "include": [
         "./components/*",
         "./scripts/*"
-    ]
+, "components/exercises/partial", "components/old/account-view.js", "components/old/app-root.js", "components/old/bottom-nav.js", "components/old/exercise-viewer.js", "components/old/home-view.js", "components/old/lessons-viewer.js", "components/old/login-view.js", "components/old/summary-viewer.js"    ]
 }

@@ -21,6 +21,7 @@ class LearnView extends LitElement {
       align-items: center;    /* horizontal center */
       gap: 2rem;
       width: 100%;
+      margin-left: -20px;
     }
 
     x-link {

@@ -2,12 +2,14 @@ import { css, html, LitElement } from "../../lib/lit.min.js";
 
 const topics = {
   "arytmetyka": [
-    "1", "2", "3",
-    "4", "5", "6",
+    "1", "2",
+    "3", "4",
+    "5", "6",
   ],
   "geometria": [
-    "1", "2", "3",
-    "4", "5", "6",
+    "1", "2",
+    "3", "4",
+    "5", 
   ],
 };
 
@@ -51,7 +53,7 @@ class CampaignView extends LitElement {
 
   .topic-view {
     height: calc( 90vh - 64px);
-    margin-top: 64px;
+    margin-top: -200px;
     width: 80%;
     max-width: 600px;
     display: flex;
@@ -60,9 +62,36 @@ class CampaignView extends LitElement {
     justify-content: center;
   }
 
-  .exercises {
-    height: calc(80vh - 64px);
-  }
+.exercises {
+  width: 100%;
+  max-height: 250px;   /* controls square size */
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.exercise {
+  background-color: rgb(47, 48, 68);
+  color: white;
+  text-decoration: none;
+  border-radius: .5em;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+  font-weight: 600;
+
+  aspect-ratio: 1 / 1;
+}
+
+.exercise:hover {
+  background-color: rgb(60, 62, 90);
+  transform: translateY(-2px);
+}
 `;
 
   static properties = {
@@ -75,10 +104,23 @@ class CampaignView extends LitElement {
     this.selected = 0;
   }
 
+  next_topic() {
+    this.selected = (this.selected + 1) % topics.length;
+  }
 
+  previous_topic() {
+    let selected_d = this.selected - 1;
+    if(selected_d < 0) 
+    {
+      selected_d = Object.getOwnPropertyNames(topics).length - 1; 
+    }
+    this.selected = selected_d;
+  }
 
   render() {
     const name = Object.getOwnPropertyNames(topics)[this.selected];
+    const exercises = topics[name];
+
     return html`
       <div class='back'>
         <x-link to="/learn">←</x-link>
@@ -86,7 +128,13 @@ class CampaignView extends LitElement {
       <div class='topic-view'>
         <h1>${name}</h1>
         <div class='exercises'>
-
+          ${exercises.map(
+      (ex) => html`
+            <x-link class="exercise" to="/learn/${name}/${ex}">
+              ${ex}
+            </x-link>
+          `
+    )}
         </div>
       </div>
       

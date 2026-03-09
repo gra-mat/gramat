@@ -1,0 +1,127 @@
+import { css, html, LitElement } from "../../lib/lit.min.js";
+import "./partial/navbar.js"
+
+class HomeView extends LitElement {
+    static properties = {
+        user: { type: Object }
+    };
+
+    static styles = css`
+    :host {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 90%;
+      width: 100%;
+      color: white;
+      font-family: system-ui, sans-serif;
+    }
+
+    .subtitle { 
+        font-size: 1.1rem; 
+        margin-bottom: 2rem; 
+    }
+
+    .grid-menu {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        width: 90%;
+        max-width: 600px;
+    }
+
+
+    @media (min-width: 768px) {
+    .grid-menu {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    }
+
+
+    .aligner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .menu-card {
+      background: #2f3044ff;
+      border-radius: 20px;
+      padding: 1rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .icon {
+      width: 48px;
+      height: 48px;
+      fill: white;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+    
+    .icon img {
+        filter: brightness(0) invert(1);
+    }
+    
+    .label {
+        display: block;
+        margin-top: 0.5rem;
+    }
+  `;
+
+    render() {
+        return html`
+    <h1>Cześć, ${this.user?.name || 'Uczniu'}!</h1>
+
+    <div class="subtitle">Co dzisiaj robimy?</div>
+
+    <div class="grid-menu">
+        
+        <x-link to='learn' class='menu-card'>
+            <div class='aligner'>
+                <div class='icon'>
+                    <img src="icons/learn.svg" width=48>
+                </div>
+                <span class="label">Nauka</span>
+            </div>
+        </x-link>
+
+
+        <x-link to='profile' class='menu-card'>
+          <div class='aligner'>
+            <div class='icon'>
+                <img src="${this.user?.avatarUrl ?
+                this.user?.avatarUrl :
+                "icons/account.svg"}" 
+                    width=48 style="border-radius:50%">
+            </div>
+            <span class="label">Profil</span>
+        </div>
+        </x-link>
+
+        <x-link to='settings' class='menu-card'>
+            <div class='aligner'>
+                <div class='icon'>
+                    <img src="icons/settings.svg" width=48>
+                </div>
+                <span class="label">Ustawienia</span>
+            </div>
+        </x-link>
+
+    </div>
+    <x-navbar></x-navbar>
+    `;
+    }
+}
+customElements.define("x-home-view", HomeView);

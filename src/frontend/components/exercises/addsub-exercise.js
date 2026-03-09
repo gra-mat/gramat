@@ -225,7 +225,6 @@ updated(changedProps) {
             @value-changed="${this.handleInput}"
           ></x-input-slider>
         `;
-
       case 'drag-drop':
         return html`
           <x-drag-drop 

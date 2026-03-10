@@ -27,7 +27,7 @@ class BottomNav extends LitElement {
     super();
   }
 
-
+  // TODO: Use to='/profile' instead of @click
   render() {
     return html`
     <x-link to='/'>
@@ -36,7 +36,7 @@ class BottomNav extends LitElement {
     <x-link to='/learn'>
         <img src="icons/learn.svg" alt="Learn">
     </x-link>
-    <x-link to='/profile'>
+    <x-link to='' @click=${() => window.location.href = 'old/account.html'}>
         <img src="icons/account.svg" alt="Account">
     </x-link>
     <x-link to='/settings'>

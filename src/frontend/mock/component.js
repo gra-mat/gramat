@@ -1,4 +1,4 @@
-import { css, html, LitElement } from "../../lib/lit.min.js";
+import { css, html, LitElement } from "../lib/lit.min.js";
 
 class LearnMock extends LitElement {
   static properties = {

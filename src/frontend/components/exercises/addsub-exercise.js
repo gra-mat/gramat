@@ -1,11 +1,11 @@
 import { css, html, LitElement } from "../../lib/lit.min.js";
 
-import "../partial/keypad.js";
-import "../partial/field.js";
-import "../partial/slider.js";
-import "../partial/success-mark.js";
-import "../partial/drag-drop.js";
-import "../partial/find-error.js";
+import "./partial/keypad.js";
+import "./partial/field.js";
+import "./partial/slider.js";
+import "./partial/success-mark.js";
+import "./partial/drag-drop.js";
+import "./partial/find-error.js";
 
 class AddSubExercise extends LitElement {
   static properties = {

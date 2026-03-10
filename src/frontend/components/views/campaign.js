@@ -121,6 +121,7 @@ class CampaignView extends LitElement {
     const name = Object.getOwnPropertyNames(topics)[this.selected];
     const exercises = topics[name];
 
+    // TODO: Use to="/learn/${name}/${ex}" argument instead of @click
     return html`
       <div class='back'>
         <x-link to="/learn">←</x-link>
@@ -130,7 +131,7 @@ class CampaignView extends LitElement {
         <div class='exercises'>
           ${exercises.map(
       (ex) => html`
-            <x-link class="exercise" to="/learn/${name}/${ex}">
+            <x-link class="exercise" to="" @click=${() => window.location.href = `/old/lesson.html?lessonId=${ex}`}>
               ${ex}
             </x-link>
           `

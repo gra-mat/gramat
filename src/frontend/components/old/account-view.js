@@ -315,7 +315,7 @@ class AccountView extends LitElement {
       
       if (res.status === 401) {
         this.loggedIn = false;
-        window.location.href = '/login.html'; 
+        window.location.href = '/old/login.html'; 
         return;
       }
       

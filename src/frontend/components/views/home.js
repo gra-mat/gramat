@@ -65,13 +65,13 @@ class HomeView extends LitElement {
     .icon {
       width: 48px;
       height: 48px;
-      fill: white;
-      color: white;
       margin-bottom: 0.5rem;
     }
-    
-    .icon img {
-        filter: brightness(0) invert(1);
+
+    .icon img[src$=".svg"] {
+      fill: white;
+      color: white;
+      filter: brightness(0) invert(1);
     }
     
     .label {
@@ -80,6 +80,26 @@ class HomeView extends LitElement {
     }
   `;
 
+    async connectedCallback() {
+        super.connectedCallback();
+        await this.checkSession();
+    }
+
+    // TODO: Pass user object in prop instead of using this function
+    async checkSession() {
+        try {
+        const res = await fetch('/api/me');
+        if (res.ok) {
+            this.user = await res.json();
+        } else {
+            //window.location.href = '/old/login.html';
+        }
+        } catch (e) {
+            //window.location.href = '/old/login.html'; 
+        }
+    }
+
+    // TODO: Use to='/profile' instead of @click
     render() {
         return html`
     <h1>Cześć, ${this.user?.name || 'Uczniu'}!</h1>
@@ -98,7 +118,7 @@ class HomeView extends LitElement {
         </x-link>
 
 
-        <x-link to='profile' class='menu-card'>
+        <x-link to='' @click=${() => window.location.href = 'old/account.html'} class='menu-card'>
           <div class='aligner'>
             <div class='icon'>
                 <img src="${this.user?.avatarUrl ?

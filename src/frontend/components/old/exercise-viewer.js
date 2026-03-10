@@ -171,7 +171,7 @@ class ExerciseView extends LitElement {
     super.connectedCallback();
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "./lib/pure.min.css";
+    link.href = "../../../lib/pure.min.css";
     this.renderRoot.prepend(link);
     this.startTimer();
   }

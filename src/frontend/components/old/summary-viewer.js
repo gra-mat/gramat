@@ -105,17 +105,17 @@ class SummaryViewer extends LitElement {
         <h2 class="summary-title">Podsumowanie lekcji</h2>
 
         <div class="summary-section">
-          <img class="summary-icon" src="icons/timer.svg" alt="Timer" />
+          <img class="summary-icon" src="../../icons/timer.svg" alt="Timer" />
           <div class="summary-content"><p>Czas: ${this.time}</p></div>
         </div>
 
         <div class="summary-section">
-          <img class="summary-icon" src="icons/accuracy.svg" alt="Accuracy" />
+          <img class="summary-icon" src="../../icons/accuracy.svg" alt="Accuracy" />
           <div class="summary-content"><p>Dokładność: ${this.accuracy}</p></div>
         </div>
 
         <div class="summary-section">
-          <img class="summary-icon" src="icons/xp.svg" alt="XP" />
+          <img class="summary-icon" src="../../icons/xp.svg" alt="XP" />
           <div class="summary-content"><p>${this.xp}</p></div>
         </div>
 
@@ -142,7 +142,7 @@ class SummaryViewer extends LitElement {
       bubbles: true,
       composed: true
     }));
-    window.location.href = 'index.html';
+    window.location.href = '/#campaign';
   }
 }
 

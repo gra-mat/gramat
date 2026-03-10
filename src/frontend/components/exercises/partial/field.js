@@ -1,4 +1,4 @@
-import { css, html, LitElement } from "../../lib/lit.min.js";
+import { css, html, LitElement } from "../../../lib/lit.min.js";
 
 class Field extends LitElement {
   static properties = {

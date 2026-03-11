@@ -9,7 +9,7 @@ const topics = {
   "geometria": [
     "1", "2",
     "3", "4",
-    "5", 
+    "5",
   ],
 };
 
@@ -92,6 +92,35 @@ class CampaignView extends LitElement {
   background-color: rgb(60, 62, 90);
   transform: translateY(-2px);
 }
+
+.topic-nav {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 30px;
+}
+
+.topic-nav button {
+  width: 80px;
+  height: 80px;
+  font-size: 36px;
+  background: rgb(47,48,68);
+  color: white;
+
+  border: none;
+  border-radius: .6em;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topic-nav button:hover {
+  background: rgb(60,62,90);
+  transform: translateY(-2px);
+}
 `;
 
   static properties = {
@@ -105,14 +134,13 @@ class CampaignView extends LitElement {
   }
 
   next_topic() {
-    this.selected = (this.selected + 1) % topics.length;
+    this.selected = (this.selected + 1) % Object.getOwnPropertyNames(topics).length;
   }
 
   previous_topic() {
     let selected_d = this.selected - 1;
-    if(selected_d < 0) 
-    {
-      selected_d = Object.getOwnPropertyNames(topics).length - 1; 
+    if (selected_d < 0) {
+      selected_d = Object.getOwnPropertyNames(topics).length - 1;
     }
     this.selected = selected_d;
   }
@@ -137,8 +165,9 @@ class CampaignView extends LitElement {
           `
     )}
         </div>
+
       </div>
-      
+
       <x-navbar></x-navbar>
     `;
   }

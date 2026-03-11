@@ -307,20 +307,41 @@ class AccountView extends LitElement {
       .button-row { flex-direction: column; }
       .settings-btn { padding: 10px; }
     }
+    
+  .back {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-size: 30px;
+    background-color: rgb(47, 48, 68);
+    width: 100px;
+    text-align: center;
+    border-radius: .5em;
+    padding-bottom: 5px;
+    border: 1px solid rgb(27, 28, 48);
+
+  }
+
+  a {
+    color: white;
+    text-decoration: none;
+  }
+
+
   `;
 
   async fetchAccountData() {
     try {
       const res = await fetch('/api/me');
-      
+
       if (res.status === 401) {
         this.loggedIn = false;
-        window.location.href = '/old/login.html'; 
+        window.location.href = '/old/login.html';
         return;
       }
-      
+
       if (res.status !== 200) throw new Error("Error fetching user data");
-      
+
       this.userData = await res.json();
 
       if (!this.userData.completedLessons) {
@@ -340,7 +361,7 @@ class AccountView extends LitElement {
       this.userWeaknesses = ['Dodawanie do 10', 'Mnożenie liczb jednocyfrowych'];
 
       const achRes = await fetch('/api/achievement/');
-      if (achRes.status !== 200) throw new Error("Error fetching achievements data");      
+      if (achRes.status !== 200) throw new Error("Error fetching achievements data");
       this.achievementsData = await achRes.json();
 
       const unlAchRes = await fetch('/api/me/unlockedAchievements');
@@ -383,12 +404,15 @@ class AccountView extends LitElement {
     const lvl = this.userData.level ?? (this.userData.points ? Math.max(1, Math.floor(this.userData.points / 100)) : 1);
 
     return html`
+      <div class='back'>
+        <a href="../../#/learn">←</a>
+      </div>
     <div class="container">
       <div class="card">
         <div class="profile-row">
           ${this.userData.avatarUrl
-            ? html`<div class="avatar"><img src="${this.userData.avatarUrl}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%" /></div>`
-            : html`<div class="avatar">${(this.userData.name || 'U')[0]}</div>`}
+        ? html`<div class="avatar"><img src="${this.userData.avatarUrl}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%" /></div>`
+        : html`<div class="avatar">${(this.userData.name || 'U')[0]}</div>`}
           <div class="profile-meta">
             <div class="profile-name">${this.userData.name}</div>
             <div class="profile-level">Lvl ${lvl} • ${this.userData.points ?? 0} XP</div>
@@ -417,13 +441,13 @@ class AccountView extends LitElement {
 
           <div class="achievement-grid">
             ${this.achievementsData.map(ach => {
-              const isUnlocked = (this.unlockedAchievementsData || []).some(u => u.achievementId === ach.id);
-              return html`
+          const isUnlocked = (this.unlockedAchievementsData || []).some(u => u.achievementId === ach.id);
+          return html`
                 <div class="achievement ${isUnlocked ? '' : 'locked'}" title="${ach.name}">
                   <img src="${ach.imageUrl}" alt="${ach.name}" />
                 </div>
               `;
-            })}
+        })}
           </div>
         </div>
 
@@ -443,7 +467,7 @@ class AccountView extends LitElement {
         </div>
       </div>
 
-    <div class="modal ${this.isSettingsOpen ? 'open' : ''}" @click="${(e)=> { if(e.target.classList.contains('modal')) this.toggleSettings(); }}">
+    <div class="modal ${this.isSettingsOpen ? 'open' : ''}" @click="${(e) => { if (e.target.classList.contains('modal')) this.toggleSettings(); }}">
       <div class="modal-content" @click="${e => e.stopPropagation()}">
         <div class="modal-header">Ustawienia konta</div>
 
@@ -462,10 +486,10 @@ class AccountView extends LitElement {
         </div>
       </div>
     </div>
-
+        <x-navbar></x-navbar>
     <!-- MISTAKES modal -->
 
-    <div class="modal ${this.isMistakesOpen ? 'open' : ''}" @click="${(e)=> { if(e.target.classList.contains('modal')) this.toggleMistakes(); }}">
+    <div class="modal ${this.isMistakesOpen ? 'open' : ''}" @click="${(e) => { if (e.target.classList.contains('modal')) this.toggleMistakes(); }}">
       <div class="modal-content" @click="${e => e.stopPropagation()}">
         <div class="modal-header">Pomyłki</div>
         <div class="modal-list" style="display:flex;flex-direction:column;gap:8px">
@@ -481,7 +505,7 @@ class AccountView extends LitElement {
 
     <!-- WEAKNESSES modal -->
 
-    <div class="modal ${this.isWeaknessesOpen ? 'open' : ''}" @click="${(e)=> { if(e.target.classList.contains('modal')) this.toggleWeaknesses(); }}">
+    <div class="modal ${this.isWeaknessesOpen ? 'open' : ''}" @click="${(e) => { if (e.target.classList.contains('modal')) this.toggleWeaknesses(); }}">
       <div class="modal-content" @click="${e => e.stopPropagation()}">
         <div class="modal-header">Słabe strony</div>
         <ul class="modal-list">

@@ -15,6 +15,25 @@
  	- Nagrac stare wersje aplikacji (wziac wersje z jakiegos starego commita, pokazac przebitki progressu produktu)
 - Na koncu logo, nazwa i download now
 
+<h1>Prezentacja:</h1>
+
+- wyjaśninie problemu
+	- potrzeba narzędzia do nauki matematyki dla dzieci w szkołach podstawowych
+	- brak zadań domowych w szkołach podstawowych
+- wyzwanie
+	- dostarczyć produkt pozwalający na przystępną nauke matematyki
+	- aplikacja intuicja i prosta w obsłudze dla dzieci
+- technologia
+	- stack technologiczny
+    - obrazy architektury aplikacji (z attachments)
+   	- screeny z bazy danych
+	- screeny z kanbana
+ - zalety
+    - pokazanie screenów z aplikcji
+    - open source
+- future works
+	- grywalizacja
+   	- pozostałe zadania obejmujące program nauczenia do klasy 6 szkoły podstawowej
 
 <h1>Plakat:</h1>
 
@@ -24,3 +43,5 @@
 - Ogolny opis aplikacji w kilku zdaniach
 - Wypis featurow
 - Screeny z UI (ok. 3/4) w obramowce urzadzenia (Telefon i PC)
+
+

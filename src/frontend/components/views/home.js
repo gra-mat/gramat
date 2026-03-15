@@ -121,10 +121,7 @@ class HomeView extends LitElement {
         <x-link to='' @click=${() => window.location.href = 'old/account.html'} class='menu-card'>
           <div class='aligner'>
             <div class='icon'>
-                <img src="${this.user?.avatarUrl ?
-                this.user?.avatarUrl :
-                "icons/account.svg"}" 
-                    width=48 style="border-radius:50%">
+                <img src="${this.user?.avatarUrl ? (this.user?.avatarUrl == 'cashed') ? `${window.location.origin}/api/me/cashedAvatar` : this.user?.avatarUrl : "icons/account.svg"}" width=48 style="border-radius:50%">
             </div>
             <span class="label">Profil</span>
         </div>

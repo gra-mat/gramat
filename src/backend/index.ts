@@ -125,9 +125,9 @@ async function init() {
         callbackURL: `${callbackURLarg}`
     },
     async function(accessToken : any, refreshToken : any, profile : any, cb : any) {
+        let user = null;
         if (await userRepository.checkIfUserExists(profile.id)) {
-            const user = await userRepository.getUserById(profile.id);
-            return cb(null, user);
+            user = await userRepository.getUserById(profile.id);
         } 
         
         // to potem do aktualizowania avatara aanga ale trzeba zrobic updateUser
@@ -136,22 +136,30 @@ async function init() {
     //const user = await userRepository.getUserById(profile.id);
     //return cb(null, user);
     //}
-        
+    
         else {
-            const user = await userRepository.createUserWithGoogle(profile.id, profile.displayName, profile.emails[0].value, profile.photos[0].value);
-            return cb(null, user);
+            user = await userRepository.createUserWithGoogle(profile.id, profile.displayName, profile.emails[0].value, profile.photos[0].value);
         }
+
+        if (await userRepository.checkIfUserAvatarIsCached(profile.id) == false) {
+            await userRepository.cacheUserAvatar(profile.id, profile.photos[0].value);
+        }
+        if (await userRepository.checkIfUserAvatarIsCached(profile.id)) {
+            user.setAvatarUrl('cashed');
+        }
+        return cb(null, user);
     }
     ));
 
     passport.serializeUser(function(user : any, cb : any) {
-        // console.log('Serializing user:', user);
         cb(null, user.id);
     });
 
     passport.deserializeUser(async function(id : any, cb : any) {
-        // console.log('Deserializing user with id:', id);
         const user = await userRepository.getUserById(id);
+        if (await userRepository.checkIfUserAvatarIsCached(id)) {
+            user.setAvatarUrl('cashed');
+        }
         cb(null, user);
     });
 
@@ -246,6 +254,20 @@ async function init() {
             } else {
                 res.status(401).json({ error: 'Not logged in' });
             }
+    });
+
+    app.get('/api/me/cashedAvatar', async (req: any, res) => {
+        if (req.user && req.user.avatarUrl) {
+            const userAvatar = userRepository.getUserCachedAvatar(req.user.id);
+            if (userAvatar != null) {
+                return res.sendFile(`/avatars/${req.user.id}.jpg`, {'root':'.'});
+            }
+            else {
+                res.status(401).json({ error: 'Avatar not cached' });
+            }
+        } else {
+            res.status(401).json({ error: 'Not logged in' });
+        }
     });
 
     app.get("/api/me/lessonQuestions/:id", async (req, res) => {

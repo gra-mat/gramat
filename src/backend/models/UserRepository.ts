@@ -1,6 +1,8 @@
 import { Database } from "./Database.ts";
 import { User } from './User.ts';
 
+import fs from 'fs';
+
 export class UserRepository {
 
     db : Database;
@@ -65,6 +67,36 @@ export class UserRepository {
         }
     }
 
+    async cacheUserAvatar(userId: string, avatarUrl: string) {
+
+        const res = await fetch(avatarUrl);
+
+        if (!res.ok) {
+            throw new Error("Failed to fetch avatar");
+        }
+
+        const buffer = Buffer.from(await res.arrayBuffer());
+
+        fs.writeFile(`avatars/${userId}.jpg`, buffer, (err) => {
+            if (err) throw err;
+            console.log('The file has been saved!');
+        });
+    }
+
+    async checkIfUserAvatarIsCached(userId: string) : Promise<boolean> {
+        if (fs.existsSync(`avatars/${userId}.jpg`)) {
+            return true;
+        }
+        return false;
+    }
+
+    async getUserCachedAvatar(userId: string) {
+        if (await this.checkIfUserAvatarIsCached(userId)) {
+            return fs.access(`avatars/${userId}.jpg`, () => {});
+        }
+        return null;
+    }
+
     async createUserWithGoogle(userId : string, name: string, email: string, avatarUrl: string | null) : Promise<User> {
         const password = null;
         const authProvider = "google";
@@ -74,6 +106,9 @@ export class UserRepository {
         const weaknesses = null;
         const suggestedExercises = null;
         const stats = JSON.stringify({"completedLessons": 0, "perfectlyCompletedLessons": 0, math_branches: {}});
+        if (typeof avatarUrl === 'string') {
+            this.cacheUserAvatar(userId, avatarUrl);
+        }
         const newUser = new User(userId, name, email, password, authProvider, avatarUrl, permissions, points, strengths, weaknesses, suggestedExercises, stats);
         try {
             await new Promise<void>((resolve, reject) => {

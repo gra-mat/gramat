@@ -405,13 +405,13 @@ class AccountView extends LitElement {
 
     return html`
       <div class='back'>
-        <a href="../../#/learn">←</a>
+        <a href="../../">←</a>
       </div>
     <div class="container">
       <div class="card">
         <div class="profile-row">
           ${this.userData.avatarUrl
-        ? html`<div class="avatar"><img src="${this.userData.avatarUrl}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%" /></div>`
+        ? html`<div class="avatar"><img src="${this.userData.avatarUrl ? (this.userData.avatarUrl == 'cashed') ? `${window.location.origin}/api/me/cashedAvatar` : this.userData.avatarUrl : "icons/account.svg"}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%" /></div>`
         : html`<div class="avatar">${(this.userData.name || 'U')[0]}</div>`}
           <div class="profile-meta">
             <div class="profile-name">${this.userData.name}</div>

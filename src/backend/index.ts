@@ -130,11 +130,11 @@ async function init() {
             user = await userRepository.getUserById(profile.id);
         } 
         
-        // to potem do aktualizowania avatara aanga ale trzeba zrobic updateUser
-        //if (await userRepository.checkIfUserExists(profile.id)) {
-    //await userRepository.updateUserAvatar(profile.id, profile.photos[0].value); 
-    //const user = await userRepository.getUserById(profile.id);
-    //return cb(null, user);
+    // to potem do aktualizowania avatara aanga ale trzeba zrobic updateUser
+    //if (await userRepository.checkIfUserExists(profile.id)) {
+        //await userRepository.updateUserAvatar(profile.id, profile.photos[0].value); 
+        //const user = await userRepository.getUserById(profile.id);
+        //return cb(null, user);
     //}
     
         else {
@@ -294,8 +294,19 @@ async function init() {
     });
 
     app.get("/api/me/nextQuestion", async (req, res) => {
-        const result = (req.session as any).currentLesson.exercises[(req.session as any).currentQuestionIndex];
-        (req.session as any).currentQuestionIndex += 1;
+        const currentLesson = (req.session as any).currentLesson;
+        const idx = (req.session as any).currentQuestionIndex || 0;
+
+        if (!currentLesson || !Array.isArray(currentLesson.exercises)) {
+            return res.json({ finished: true });
+        }
+
+        if (idx >= currentLesson.exercises.length) {
+            return res.json({ finished: true });
+        }
+
+        const result = currentLesson.exercises[idx];
+        (req.session as any).currentQuestionIndex = idx + 1;
         res.json(result);
     });
 

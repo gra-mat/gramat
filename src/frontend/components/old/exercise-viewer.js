@@ -336,19 +336,26 @@ class ExerciseView extends LitElement {
   _handleCheck() {
     if (this._animationInProgress) return;
 
-    this._animationInProgress = true;
-    this._pendingNext = true;
+    const slot = this.renderRoot.querySelector('slot');
+    const assigned = slot ? slot.assignedElements() : [];
+    const visibleComponent = assigned.find(el => el.offsetParent !== null) || this._slottedComponent;
 
-    if (this._slottedComponent?.check) {
+    if (visibleComponent?.check) {
       this._progressUpdatedThisCycle = false;
 
-      this._slottedComponent.check();
-
-      const SAFE_TIMEOUT = 5000;
-      this._nextTimeout = setTimeout(() => {
-        this._nextTimeout = null;
-        this._onAnswerFinalized({ detail: { correct: undefined } });
-      }, SAFE_TIMEOUT);
+      const shouldStartTimeout = visibleComponent.check();
+      if (shouldStartTimeout !== false) {
+        this._animationInProgress = true;
+        this._pendingNext = true;
+        const SAFE_TIMEOUT = 5000;
+        this._nextTimeout = setTimeout(() => {
+          this._nextTimeout = null;
+          this._onAnswerFinalized({ detail: { correct: undefined } });
+        }, SAFE_TIMEOUT);
+      } else {
+        this._animationInProgress = false;
+        this._pendingNext = false;
+      }
     } else {
       console.warn("Slotted component has no check() method");
     }
@@ -356,10 +363,7 @@ class ExerciseView extends LitElement {
 
   tryExit() {
     window.location.href = '/';
-    // this.dispatchEvent(new CustomEvent('exit-lesson', {
-    //   bubbles: true,
-    //   composed: true
-    // }));
+
   }
 
   render() {

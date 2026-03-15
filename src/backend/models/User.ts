@@ -1,18 +1,18 @@
 export class User {
     id: string;
     name: string;
-    email: string;
+    email: string | null;
     password: string | null;
-    authProvider : string;
+    authProvider : string | null;
     avatarUrl: string | null;
-    permissions: string;
-    points: number;
+    permissions: string | null;
+    points: number | null;
     strengths: string | null;
     weaknesses: string | null;
     suggestedExercises: string | null;
     stats : string | null;
 
-    constructor(id: string, name: string, email: string, password: string | null, authProvider: string, avatarUrl: string | null, permissions: string, points: number, strengths: string | null, weaknesses: string | null, suggestedExercises: string | null, stats: string | null) {
+    constructor(id: string, name: string, email: string | null, password: string | null, authProvider: string | null, avatarUrl: string | null, permissions: string | null, points: number | null, strengths: string | null, weaknesses: string | null, suggestedExercises: string | null, stats: string | null) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -43,11 +43,11 @@ export class User {
         this.name = name;
     }
 
-    getEmail(): string {
+    getEmail(): string | null {
         return this.email;
     }
 
-    setEmail(email: string): void {
+    setEmail(email: string | null): void {
         this.email = email;
     }
 
@@ -59,11 +59,11 @@ export class User {
         this.password = password;
     }
 
-    getAuthProvider(): string {
+    getAuthProvider(): string | null {
         return this.authProvider;
     }
     
-    setAuthProvider(authProvider: string): void {
+    setAuthProvider(authProvider: string | null): void {
         this.authProvider = authProvider;
     }
 
@@ -75,19 +75,19 @@ export class User {
         this.avatarUrl = avatarUrl;
     }
     
-    getPermissions(): string {
+    getPermissions(): string | null {
         return this.permissions;
     }
 
-    setPermissions(permissions: string): void {
+    setPermissions(permissions: string | null): void {
         this.permissions = permissions;
     }
 
-    getPoints(): number {
+    getPoints(): number | null {
         return this.points;
     }
 
-    setPoints(points: number): void {
+    setPoints(points: number | null): void {
         this.points = points;
     }
 

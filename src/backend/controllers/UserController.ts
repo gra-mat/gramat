@@ -33,6 +33,14 @@ export class UserController {
         }
     }
 
+    getUserCachedAvatarById = async (req : any, res : any) => {
+        const userId = req.params.id;
+        if (await this.userRepository.checkIfUserAvatarIsCached(userId)) {
+            return res.sendFile(`/avatars/${userId}.jpg`, {'root':'.'});
+        }
+        return res.status(404).send('Avatar not found');
+    }
+
     getLoggedUser = async (req : any, res : any) => {
         if (!req.user) {
             return res.status(401).json({ error: 'User not logged in' });
@@ -51,4 +59,16 @@ export class UserController {
         });
     }
 
+    getLeaderboard = async (req : any, res : any) => {
+        try {
+            this.userRepository.getLeaderboard().then((leaderboard) => {
+                res.json(leaderboard);
+            }).catch((err) => {
+                res.status(500).json({ error: err.message });
+            });
+
+        } catch (err : any) {
+            res.status(500).json({ error: err.message });
+        }
+    }
 }

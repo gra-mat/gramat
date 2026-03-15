@@ -1,4 +1,4 @@
-import { css, html, LitElement } from "../../lib/lit.min.js";
+import { css, html, LitElement, unsafeHTML } from "../../lib/lit.min.js";
 
 import "./partial/keypad.js";
 import "./partial/field.js";
@@ -31,8 +31,10 @@ class AddSubExercise extends LitElement {
       font-family: sans-serif; 
       height: 100%; 
     }
-    .question { font-size: 4rem; font-weight: bold; margin-bottom: 20px; }
+    .question { font-size: 3rem; font-weight: bold; margin-bottom: 20px; }
     .fields-group { display: flex; flex-direction: row; gap: 0.5rem; margin-bottom: 2rem; }
+    .exercise_image { height: 4rem; }
+    #image_text_question { display: flex; align-items: center; justify-content: center; }
    `;
 
   constructor() {
@@ -214,6 +216,19 @@ updated(changedProps) {
   }
 }
 
+  renderExerciseQuestion() {
+    switch (this.config.question_type) {
+      case 'text_only':
+        return html`
+        ${this.exercise}
+        `;
+      case 'image_text':
+        let exerciseWithImgs = this.exercise;
+        exerciseWithImgs = exerciseWithImgs.replace(/{(\S*)}/gm, '<img class="exercise_image" src="../exercise_images/$1"/>');
+        exerciseWithImgs = exerciseWithImgs.replace(/\\n/gm, '<br/>');
+        return html`${unsafeHTML(exerciseWithImgs)}`;
+    }
+  }
   renderExerciseContent() {
     switch (this.config.answer_type) {
       case 'slider':
@@ -263,7 +278,7 @@ updated(changedProps) {
     return html`
       <x-success-mark id="mark"></x-success-mark>
       <div class="container">
-        <div class="question">${this.exercise}</div>
+        <div class="question">${this.renderExerciseQuestion()}</div>
         ${this.renderExerciseContent()}
       </div>
     `;

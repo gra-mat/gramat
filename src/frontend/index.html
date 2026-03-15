@@ -11,6 +11,7 @@
     <script type="module" src="components/views/account.js"></script>
     <script type="module" src="components/views/learn.js"></script>
     <script type="module" src="components/views/campaign.js"></script>
+    <script type="module" src="components/old/leaderboard-viewer.js"></script>
     
     <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8" />
@@ -43,6 +44,11 @@
         <!-- Campaign selection -->
         <x-route path="/campaign" title="campaign">
             <x-campaign-view></x-campaign-view>
+        </x-route>
+
+        <!-- users leaderboard -->
+        <x-route path="/leaderboard" title="leaderboard">
+            <x-leaderboard-view></x-leaderboard-view>
         </x-route>
     </x-router>
 </body>

@@ -4,6 +4,7 @@ import "./login-view.js";
 import "./home-view.js";
 import "./account-view.js"; 
 import "./lessons-viewer.js";
+import './leaderboard-viewer.js';
 import "./exercise-viewer.js";
 
 export class AppRoot extends LitElement {
@@ -115,6 +116,14 @@ export class AppRoot extends LitElement {
       case 'settings':
         return html`<div style="color:white; text-align:center; padding-top:20vh"><h1>Ustawienia ⚙️</h1><button @click="${() => this.currentView = 'home'}">Wróć</button></div>`;
 
+      case 'leaderboard':
+        return html`
+          <button @click="${() => this.currentView = 'home'}" 
+            style="position:absolute; top:20px; left:20px; z-index:100; padding:10px; border-radius:10px; border:none; background:#2f3044ff; color:white; cursor:pointer; font-weight:bold;">
+            ⬅ Wróć do menu
+          </button>
+          <x-leaderboard-view>
+          </x-leaderboard-view>`;
       default:
         return html`<div>Błąd widoku</div>`;
     }

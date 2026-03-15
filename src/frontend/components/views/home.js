@@ -92,10 +92,10 @@ class HomeView extends LitElement {
         if (res.ok) {
             this.user = await res.json();
         } else {
-            //window.location.href = '/old/login.html';
+            window.location.href = '/old/login.html';
         }
         } catch (e) {
-            //window.location.href = '/old/login.html'; 
+            window.location.href = '/old/login.html'; 
         }
     }
 
@@ -127,12 +127,12 @@ class HomeView extends LitElement {
         </div>
         </x-link>
 
-        <x-link to='settings' class='menu-card'>
+        <x-link to='/leaderboard' class='menu-card'>
             <div class='aligner'>
                 <div class='icon'>
-                    <img src="icons/settings.svg" width=48>
+                    <img src="icons/leaderboard.svg" width=48>
                 </div>
-                <span class="label">Ustawienia</span>
+                <span class="label">Tabela wyników</span>
             </div>
         </x-link>
 

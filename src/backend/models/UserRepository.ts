@@ -49,6 +49,33 @@ export class UserRepository {
         }
     }
 
+    async getLeaderboard() : Promise<Array<User>> {
+        try {
+            const rows: any[] = await new Promise<any[]>((resolve, reject) => {
+                if (this.db.dbObj === null) {
+                    throw new Error('Database not connected');
+                }
+                this.db.dbObj.all('SELECT user_id, user_name, user_avatar_url, user_points FROM users ORDER BY user_points DESC', [], (err, rows) => {
+                    if (err) { reject(err); }
+                    else { resolve(rows); }
+                });
+            });
+
+            if (!rows || rows.length === 0) {
+                throw new Error(`No users were found`);
+            }
+
+            const leaderboard: Array<User> = [];
+            rows.forEach((row) => {
+                const user = new User(row.user_id, row.user_name, null, null, null, row.user_avatar_url, null, row.user_points, null, null, null, null);
+                leaderboard.push(user);
+            });
+            return leaderboard;
+        } catch (err: any) {
+            throw new Error(`Error fetching leaderboard: ${err}`);
+        }
+    }
+
     async checkIfUserExists(userId : string) : Promise<boolean> {
         try {
             const rows: any[] = await new Promise<any[]>((resolve, reject) => {

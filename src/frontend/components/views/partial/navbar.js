@@ -39,8 +39,8 @@ class BottomNav extends LitElement {
     <x-link to='' @click=${() => window.location.href = 'old/account.html'}>
         <img src="icons/account.svg" alt="Account">
     </x-link>
-    <x-link to='/settings'>
-        <img src="icons/settings.svg" alt="Settings">
+    <x-link to='/leaderboard'>
+        <img src="icons/leaderboard.svg" alt="Leaderboard">
     </x-link>
     `;
   }

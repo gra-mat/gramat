@@ -108,8 +108,8 @@ class BottomNav extends LitElement {
       <button class="nav-btn" @click=${() => this.navigate('profile')} aria-label="Account">
         <img src="icons/account.svg" alt="Account">
       </button>
-      <button class="nav-btn" @click=${() => this.navigate('settings')} aria-label="Settings">
-        <img src="icons/settings.svg" alt="Settings">
+      <button class="nav-btn" @click=${() => this.navigate('leaderboard')} aria-label="Leaderboard">
+        <img src="icons/leaderboard.svg" alt="Leaderboard">
       </button>
     `;
   }

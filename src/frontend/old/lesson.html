@@ -1,132 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../lib/pure.min.css"/>
+    <title>Lesson</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="../lib/pure.min.css" />
-  <title>Document</title>
+    <script type="module" src="../components/old/exercise-viewer.js"></script>
+    <script type="module" src="../components/exercises/addsub-exercise.js"></script>
+    <script type="module" src="../components/exercises/partial/success-mark.js"></script>
+    <script type="module" src="../components/old/summary-viewer.js"></script>
+    <script type="module" src="../components/exercises/fraction-exercise.js"></script>
 
-  <script type="module" src="../components/old/exercise-viewer.js"></script>
-  <script type="module" src="../components/exercises/addsub-exercise.js"></script>
-  <script type="module" src="../components/exercises/partial/success-mark.js"></script>
-  <script type="module" src="../components/old/summary-viewer.js"></script>
+    <style>
+      html, body {
+        height: 100%;
+        width: 100%;
+        background-color: #2c2c54;
+        color: white;
+        margin: 0;
+      }
+    </style>
+  </head>
 
-  <style>
-    html,
-    body {
-      height: 100%;
-      width: 100%;
-      background-color: #2c2c54;
-      color: white;
-    }
-  </style>
-</head>
+  <body>
+    <x-exercise-view>
+      <x-addsub-exercise id="addsub-ex" style="display: none;"></x-addsub-exercise>
+      <x-fraction-exercise id="fraction-ex" style="display: none;"></x-fraction-exercise>
+    </x-exercise-view>
 
-<body>
-  <x-exercise-view>
-    <x-addsub-exercise></x-addsub-exercise>
-  </x-exercise-view>
+    <summary-viewer
+      id="summary"
+      class="hidden"
+      time="0m 37s"
+      accuracy="100%"
+      xp="+70 XP">
+    </summary-viewer>
 
-  <summary-viewer id="summary" class="hidden" time="0m 37s" accuracy="100%" xp="+70 XP">
-  </summary-viewer>
+    <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+        const params = new URLSearchParams(location.search);
+        const lessonId = params.get('lessonId');
+        if (!lessonId) return;
 
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      const params = new URLSearchParams(location.search);
-      const lessonId = params.get('lessonId');
-      if (!lessonId) return;
+        const r = await fetch(`/api/me/lessonQuestions/${lessonId}`);
+        if (!r.ok) return;
+        const data = await r.json();
 
-      const r = await fetch(`/api/me/lessonQuestions/${lessonId}`);
-      //const r = await fetch(`/api/lesson/${lessonId}`);
-      if (!r.ok) { console.error('Nie można pobrać lekcji', r.status); return; }
-      const data = await r.json();
-      const exercises = data.exercises || [];
-      if (!exercises.length) return;
+        const exercises = data.exercises || [];
+        if (!exercises.length) return;
 
-      const view = document.querySelector('x-exercise-view');
-      const addSub = document.querySelector('x-addsub-exercise');
+        const view = document.querySelector('x-exercise-view');
+        const addSub = document.querySelector('x-addsub-exercise');
+        const fraction = document.querySelector('x-fraction-exercise');
 
-      let startTime = Date.now();
-      let correctAnswers = 0;
-      let wrongAnswers = 0;
+        let startTime = Date.now();
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
 
-      view && view.setAttribute('progress-step', String(100 / exercises.length));
+        view && view.setAttribute('progress-step', String(100 / exercises.length));
 
-      let idx = 0;
-      addSub.exerciseId = exercises[idx].id;
-      // addSub.setAttribute('exercise-id', String(exercises[idx].id));
+        let idx = 0;
 
-      const updateTimer = () => {
-        const elapsedTime = Date.now() - startTime;
-        const minutes = Math.floor(elapsedTime / 1000 / 60);
-        const seconds = Math.floor((elapsedTime / 1000) % 60);
+        const getComponentForExercise = (exercise) => {
+          try {
+            const props = JSON.parse(exercise.exerciseProperties || '{}');
+            const at = props.answer_type;
+            if (at === 'selector' || at === 'multiplechoice' || at === 'matching' ||
+                (at === 'keypad' && exercise.exerciseAnswer && exercise.exerciseAnswer.includes("/"))) {
+              return fraction;
+            }
+            return addSub;
+          } catch {
+            return addSub;
+          }
+        };
 
-        const timerElement = document.getElementById("timer");
-        if (timerElement) {
-          timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+        function showExercise(idx) {
+          const current = exercises[idx];
+          if (!current) return;
+
+          let props;
+          try { props = current.exerciseProperties ? JSON.parse(current.exerciseProperties) : {}; }
+          catch { props = {}; }
+
+          if (Array.isArray(props.options) && props.options.length) {
+            if (!props.answer_type || !['multiplechoice','selector','matching'].includes(props.answer_type)) {
+              props.answer_type = 'multiplechoice';
+            }
+          }
+
+          const isFractionType = props.answer_type === 'selector' ||
+            props.answer_type === 'multiplechoice' ||
+            props.answer_type === 'matching' ||
+            (props.answer_type === 'keypad' && current.exerciseAnswer && current.exerciseAnswer.includes("/"));
+
+          if (isFractionType) {
+            fraction.style.display = 'block';
+            addSub.style.display = 'none';
+
+            fraction.exerciseId = current.id;
+            fraction.exercise = current.exerciseQuestion || '';
+            fraction.config = props || { answer_type: 'keypad' };
+
+            const parts = (current.exerciseAnswer || '').toString().split('/');
+            fraction.solution = { numerator: parts[0] || '', denominator: parts[1] || '' };
+            
+
+            if (typeof current.exerciseAnswer === 'string' && current.exerciseAnswer.includes(',')) {
+              fraction._expectedAnswers = current.exerciseAnswer.split(',').map(s => s.trim());
+            } else {
+              fraction._expectedAnswers = null;
+            }
+
+            if (Array.isArray(props.options) && props.options.length) {
+              fraction.options = props.options;
+              fraction.given = { numerator: props.options[0].numerator, denominator: props.options[0].denominator };
+            } else {
+              fraction.options = [];
+              fraction.given = { numerator: '', denominator: '' };
+            }
+
+            fraction.statuses = ["", ""];
+            fraction.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+          } else {
+            fraction.style.display = 'none';
+            addSub.style.display = 'block';
+
+            addSub.exercise = current.exerciseQuestion || '';
+            addSub.solution = current.exerciseAnswer || '';
+            addSub.config = props || { answer_type: 'keypad' };
+            addSub.given = '';
+            addSub.orderStage = 1;
+            addSub.orderError = null;
+            addSub.orderOperations = [];
+            addSub.selectedOpIndex = null;
+            addSub.resultOptions = [];
+            addSub.selectedResult = null;
+
+            if (addSub.config.answer_type === 'order') {
+              addSub._prepareOrderExercise();
+            }
+
+            addSub.exerciseId = current.id;
+            addSub.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+          }
         }
-      };
 
-      const timerInterval = setInterval(updateTimer, 1000);
+        const updateTimer = () => {
+          const elapsedTime = Date.now() - startTime;
+          const minutes = Math.floor(elapsedTime / 1000 / 60);
+          const seconds = Math.floor((elapsedTime / 1000) % 60);
 
-      view.addEventListener("next-exercise", async () => {
-        const wasCorrect = !!addSub.isCorrect;
-        if (wasCorrect) correctAnswers++;
-        else wrongAnswers++;
+          const timerElement = document.getElementById("timer");
+          if (timerElement) {
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+          }
+        };
 
-        idx++;
+        const timerInterval = setInterval(updateTimer, 1000);
 
-        if (idx >= exercises.length) {
+        showExercise(0);
 
-          const summary = document.querySelector("#summary");
-          if (!summary) {
-            console.error("Nie znaleziono elementu summary!");
+        view.addEventListener("next-exercise", async () => {
+          const component = getComponentForExercise(exercises[idx]);
+          const wasCorrect = !!component.isCorrect;
+          if (wasCorrect) correctAnswers++;
+          else wrongAnswers++;
+
+          idx++;
+
+          if (idx >= exercises.length) {
+            const summary = document.querySelector("#summary");
+            if (!summary) return;
+
+            document.querySelector("x-exercise-view").classList.add("hidden");
+
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+
+            const total = exercises.length;
+            const accuracy = Math.round((correctAnswers / total) * 100);
+            const xp = (correctAnswers * 10).toFixed(0);
+
+            summary.setAttribute("time", `${minutes}m ${seconds}s`);
+            summary.setAttribute("accuracy", `${accuracy}%`);
+            summary.setAttribute("xp", `+${xp} XP`);
+            summary.classList.remove("hidden");
+
+            clearInterval(timerInterval);
+
+            await fetch("/api/me/lessonCompleted", {
+              method: "POST",
+              credentials: "include",
+              body: JSON.stringify({
+                lessonId: lessonId,
+                time: elapsedTime,
+                accuracy: accuracy,
+                xp: Number(xp)
+              }),
+              headers: {
+                "Content-type": "application/json; charset=UTF-8"
+              }
+            });
+
             return;
           }
 
-          document.querySelector("x-exercise-view").classList.add("hidden");
-
-          const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-          const minutes = Math.floor(elapsedTime / 60);
-          const seconds = elapsedTime % 60;
-
-          const total = exercises.length;
-          const accuracy = Math.round((correctAnswers / total) * 100);
-          const xp = (correctAnswers * 10).toFixed(0);
-
-          summary.setAttribute("time", `${minutes}m ${seconds}s`);
-          summary.setAttribute("accuracy", `${accuracy}%`);
-          summary.setAttribute("xp", `+${xp} XP`);
-          summary.classList.remove("hidden");
-
-          clearInterval(timerInterval);
-
-          await fetch("/api/me/lessonCompleted", {
-            method: "POST",
-            credentials: "include",
-            body: JSON.stringify({
-              lessonId: lessonId,
-              time: elapsedTime,
-              accuracy: accuracy,
-              xp: Number(xp)
-            }),
-            headers: {
-              "Content-type": "application/json; charset=UTF-8"
-            }
-          });
-          console.log("Lekcja zakończona");
-          return;
-        }
-
-
-        setTimeout(() => {
-          addSub.setAttribute("exercise-id", String(exercises[idx].id));
-        }, 350);
+          setTimeout(() => {
+            showExercise(idx);
+          }, 350);
+        });
       });
-    });
-  </script>
-
-</body>
-
+    </script>
+  </body>
 </html>

@@ -93,6 +93,12 @@ class CampaignView extends LitElement {
   transform: translateY(-2px);
 }
 
+.exercise img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 .topic-nav {
   display: flex;
   justify-content: center;
@@ -158,14 +164,13 @@ class CampaignView extends LitElement {
         <h1>${name}</h1>
         <div class='exercises'>
           ${exercises.map(
-      (ex) => html`
-            <x-link class="exercise" to="" @click=${() => window.location.href = `/old/lesson.html?lessonId=${ex}`}>
-              ${ex}
-            </x-link>
-          `
-    )}
+            (ex) => html`
+              <x-link class="exercise" to="" @click=${() => window.location.href = `/old/lesson.html?lessonId=${ex}`}>
+                <img src="icons/${ex}.png" alt="${ex}" />
+              </x-link>
+            `
+          )}
         </div>
-
       </div>
 
       <x-navbar></x-navbar>

@@ -12,6 +12,7 @@ class AddSubExercise extends LitElement {
     exerciseId: { type: Number, attribute: "exercise-id" },
     exercise: { type: String },
     solution: { type: String },
+    difficultyId: { type: Number },
     given: { attribute: false, type: String }, 
     config: { type: Object },
     sliderMin: { type: Number },
@@ -39,6 +40,20 @@ class AddSubExercise extends LitElement {
       height: 100%; 
     }
     .question { font-size: 3rem; font-weight: bold; margin-bottom: 20px; }
+    .difficulty-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 12px;
+    }
+    .difficulty-indicator .dot {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 50%;
+      background: var(--difficulty-color, #ccc);
+    }
     .fields-group { display: flex; flex-direction: row; gap: 0.5rem; margin-bottom: 2rem; }
     .exercise_image { height: 4rem; }
     #image_text_question { display: flex; align-items: center; justify-content: center; }
@@ -102,6 +117,7 @@ class AddSubExercise extends LitElement {
     this.exerciseId = null;
     this.exercise = "Ładowanie...";
     this.solution = "";
+    this.difficultyId = null;
     this.given = "";
     this.config = { mode: "loading" };
     this.sliderMin = 0;
@@ -472,12 +488,14 @@ class AddSubExercise extends LitElement {
           this.exerciseId = id;
           this.exercise = "Koniec lekcji";
           this.solution = "";
+          this.difficultyId = null;
           this.config = { answer_type: "done" };
           this.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
           return;
         }
 
         this.exerciseId = id;
+        this.difficultyId = data?.difficultyId || data?.difficulty_id || null;
         this.exercise = data.exerciseQuestion?.toString() || 'Brak pytania';
         this.solution = data.exerciseAnswer?.toString() || '';
 
@@ -503,6 +521,7 @@ class AddSubExercise extends LitElement {
       .catch(err => {
         console.error('Blad _loadExercise:', err);
         this.exercise = "Blad polaczenia";
+        this.difficultyId = null;
         this.config = { answer_type: "error" }; 
       })
       .finally(() => {
@@ -534,6 +553,23 @@ updated(changedProps) {
         return html`${unsafeHTML(exerciseWithImgs)}`;
     }
   }
+
+
+  getDifficultyInfo() {
+    const id = Number(this.difficultyId);
+    if (!id) return null;
+
+    const label = this.difficultyLabel || (id <= 1 ? 'Łatwe' : id === 2 ? 'Średnie' : 'Trudne');
+    const color = id <= 1 ? '#4CAF50' : id === 2 ? '#FFC107' : '#F44336';
+    return { label, color };
+  }
+
+  renderDifficultyIndicator() {
+    const info = this.getDifficultyInfo();
+    if (!info) return null;
+    return html`<div class="difficulty-indicator" style="--difficulty-color: ${info.color};"> <span class="dot"></span> <span>${info.label}</span> </div>`;
+  }
+
   renderExerciseContent() {
     switch (this.config.answer_type) {
       case 'slider':
@@ -632,6 +668,7 @@ updated(changedProps) {
     return html`
       <x-success-mark id="mark"></x-success-mark>
       <div class="container">
+        ${this.renderDifficultyIndicator()}
         <div class="question">${this.renderExerciseQuestion()}</div>
         ${this.renderExerciseContent()}
       </div>

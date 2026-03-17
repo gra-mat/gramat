@@ -5,6 +5,7 @@ class ExerciseCalculation extends LitElement {
     exerciseId: { type: Number, attribute: "exercise-id" },
     exercise: { type: String },
     solution: { type: String },
+    difficultyId: { type: Number },
     given: { attribute: false, type: String },
     statuses: { attribute: false },
   };
@@ -23,6 +24,21 @@ class ExerciseCalculation extends LitElement {
       font-size: 3rem;
     }
 
+    .difficulty-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: rgba(0,0,0,0.75);
+      margin-bottom: 0.6rem;
+    }
+    .difficulty-indicator .dot {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 50%;
+      background: var(--difficulty-color, #ccc);
+    }
+
     .group {
       display: flex;
       flex-direction: row;
@@ -35,6 +51,7 @@ class ExerciseCalculation extends LitElement {
     this.exerciseId = null;
     this.exercise = "";
     this.solution = "";
+    this.difficultyId = null;
     this.given = "";
     this.statuses = [];
   }
@@ -59,27 +76,54 @@ class ExerciseCalculation extends LitElement {
     );
   }
 
+  _loadExercise() {    if (!this.exerciseId) return;
+
+    fetch(`api/exercise/${this.exerciseId}`)
+      .then(res => res.json())
+      .then(data => {
+        this.difficultyId = data?.difficultyId || data?.difficulty_id || data?.difficulty || null;
+        console.log('[x-calculation] exercise data', { difficultyId: this.difficultyId, data });
+        this.exercise = data.exerciseQuestion.toString();
+        this.solution = data.exerciseAnswer.toString();
+      })
+      .catch(err => {
+        this.exercise = "Blad w ladowaniu zdania";
+        this.solution = "";
+        this.difficultyId = null;
+        console.log(err);
+      });
+  }
+
   connectedCallback() {
     super.connectedCallback();
-    if (this.exerciseId) {
-      fetch(`api/exercise/${this.exerciseId}`)
-        .then(res => res.json())
-        .then(data => {
-          this.exercise = data.exerciseQuestion.toString();
-          this.solution = data.exerciseAnswer.toString();
-        })
-        .catch(err => {
-          this.exercise = "Blad w ladowaniu zdania";
-          this.solution = "";
-          console.log(err);
-        });
+    this._loadExercise();
+  }
+
+  updated(changedProps) {
+    if (changedProps.has('exerciseId')) {
+      this._loadExercise();
     }
   }
 
+  getDifficultyInfo() {
+    const id = Number(this.difficultyId);
+    if (!id) return null;
+
+    const label = id <= 1 ? 'Łatwe' : id === 2 ? 'Średnie' : 'Trudne';
+    const color = id <= 1 ? '#4CAF50' : id === 2 ? '#FFC107' : '#F44336';
+    return { label, color };
+  }
+
+  renderDifficultyIndicator() {
+    const info = this.getDifficultyInfo();
+    if (!info) return null;
+    return html`<div class="difficulty-indicator" style="--difficulty-color: ${info.color};"> <span class="dot"></span> <span>${info.label}</span> </div>`;
+  }
 
   render() {
     return html`
       <div class="assigned">
+        ${this.renderDifficultyIndicator()}
         <div class="example">${this.exercise}</div>
 
         <div class="group">

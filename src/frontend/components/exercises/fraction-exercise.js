@@ -11,6 +11,7 @@ class FractionExercise extends LitElement {
     exerciseId: { type: Number, attribute: "exercise-id" },
     exercise: { type: String },
     solution: { type: Object },
+    difficultyId: { type: Number },
     given: { attribute: false, type: Object },
     config: { type: Object },
     statuses: { attribute: false, type: Array },
@@ -21,6 +22,20 @@ class FractionExercise extends LitElement {
     :host { display:block; width:100%; height:100%; }
     .container { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; color:white; font-family:sans-serif; height:100%; padding:20px; }
     .question { font-size:2.4rem; font-weight:700; text-align:center; color:#edf0ff; }
+    .difficulty-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 12px;
+    }
+    .difficulty-indicator .dot {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 50%;
+      background: var(--difficulty-color, #ccc);
+    }
     .fields-group { display:flex; gap:12px; align-items:center; justify-content:center; }
     .x-success-mark, #mark { z-index:9999; position:absolute; pointer-events:none; left:0; top:0; }
   `;
@@ -29,6 +44,7 @@ class FractionExercise extends LitElement {
     super();
     this.exerciseId = null;
     this.exercise = "Ładowanie...";
+    this.difficultyId = null;
     this.solution = { numerator: "", denominator: "" };
     this.given = { numerator: "", denominator: "" };
     this.config = {};
@@ -271,6 +287,13 @@ class FractionExercise extends LitElement {
       bubbles: true,
       composed: true
     }));
+
+    // Automatically fetch next question after answering (if lesson not finished)
+    if (this.config?.answer_type !== 'done') {
+      setTimeout(() => {
+        this._loadExercise(this.exerciseId);
+      }, 200);
+    }
   }
 
   _loadExercise(id) {
@@ -306,9 +329,12 @@ class FractionExercise extends LitElement {
       })
       .then(data => {
         this.exerciseId = id;
+        this.difficultyId = data?.difficultyId || data?.difficulty_id || null;
+        console.log('[x-fraction-exercise] nextQuestion', { difficultyId: this.difficultyId, data });
 
         if (data && data.finished) {
           this.exercise = "Koniec lekcji";
+          this.difficultyId = null;
           this.config = { answer_type: "done" };
           this.dispatchEvent(new CustomEvent("exercise-loaded", { bubbles: true, composed: true }));
           this._loadingId = null;
@@ -345,6 +371,7 @@ class FractionExercise extends LitElement {
       })
       .catch(err => {
         this.exercise = "Błąd połączenia";
+        this.difficultyId = null;
         this.config = { answer_type: "error" };
       })
       .finally(() => {
@@ -406,10 +433,26 @@ class FractionExercise extends LitElement {
     }
   }
 
+  getDifficultyInfo() {
+    const id = Number(this.difficultyId);
+    if (!id) return null;
+
+    const label = id <= 1 ? 'Łatwe' : id === 2 ? 'Średnie' : 'Trudne';
+    const color = id <= 1 ? '#4CAF50' : id === 2 ? '#FFC107' : '#F44336';
+    return { label, color };
+  }
+
+  renderDifficultyIndicator() {
+    const info = this.getDifficultyInfo();
+    if (!info) return null;
+    return html`<div class="difficulty-indicator" style="--difficulty-color: ${info.color};"> <span class="dot"></span> <span>${info.label}</span> </div>`;
+  }
+
   render() {
     return html`
       <x-success-mark id="mark"></x-success-mark>
       <div class="container">
+        ${this.renderDifficultyIndicator()}
         <div class="question">${this.exercise}</div>
         ${this.renderExerciseContent()}
       </div>

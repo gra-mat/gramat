@@ -346,10 +346,10 @@ class AccountView extends LitElement {
 
       if (!this.userData.completedLessons) {
         this.userData.completedLessons = [
-          { id: '1', name: 'Dodawanie do 10', image: '../icons/lesson1.svg', done: true },
-          { id: '2', name: 'Dodawanie do 100', image: '../icons/lesson2.svg', done: true },
-          { id: '3', name: 'Odejmowanie do 10', image: '../icons/lesson3.svg', done: false },
-          { id: '4', name: 'Odejmowanie do 100', image: '../icons/lesson4.svg', done: false },
+          { id: '1', name: 'Dodawanie do 10', image: '../icons/1.png', done: true },
+          { id: '2', name: 'Dodawanie do 100', image: '../icons/2.png', done: true },
+          { id: '3', name: 'Odejmowanie do 10', image: '../icons/3.png', done: false },
+          { id: '4', name: 'Odejmowanie do 100', image: '../icons/4.png', done: false },
         ];
       }
 

@@ -16,38 +16,39 @@
     <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gramat</title>
+    <title>Gramat</title>
+    <link rel="icon" type="image/x-icon" href="icons/logo.svg">
 </head>
 
 <body>
     <x-router>
         <!-- main app view after logging in -->
-        <x-route path="/" title="home">
+        <x-route path="/" title="Strona główna ⸱ Gramat">
             <x-home-view></x-home-view>
         </x-route>
         
         <!-- learning selection -->
-        <x-route path="/learn" title="learn">
+        <x-route path="/learn" title="Nauka ⸱ Gramat">
             <x-learn-view></x-learn-view>
         </x-route>
 
         <!-- account viewer -->
-        <x-route path="/profile" title="profile">
+        <x-route path="/profile" title="Profil ⸱ Gramat">
             <x-account-view></x-account-view>
         </x-route>
 
         <!-- settings -->
-        <x-route path="/settings" title="settings">
+        <x-route path="/settings" title="Ustawienia ⸱ Gramat">
             <x-settings-view></x-settings-view>
         </x-route>
 
         <!-- Campaign selection -->
-        <x-route path="/campaign" title="campaign">
+        <x-route path="/campaign" title="Kampania ⸱ Gramat">
             <x-campaign-view></x-campaign-view>
         </x-route>
 
         <!-- users leaderboard -->
-        <x-route path="/leaderboard" title="leaderboard">
+        <x-route path="/leaderboard" title="Tabela wyników ⸱ Gramat">
             <x-leaderboard-view></x-leaderboard-view>
         </x-route>
     </x-router>

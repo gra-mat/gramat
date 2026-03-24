@@ -383,7 +383,7 @@ class ExerciseView extends LitElement {
       </div>
 
       <div id="check-button">
-        <button class="button" @click=${this._handleCheck}>check</button>
+        <button class="button" @click=${this._handleCheck}>Sprawdź</button>
       </div>
     `;
   }

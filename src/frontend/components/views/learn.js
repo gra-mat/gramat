@@ -112,15 +112,11 @@ x-link > div:hover{
         </x-link>
 
         <x-link to="/campaign">
-          <div>Campaign</div>
+          <div>Kampania</div>
         </x-link>
 
         <x-link to="/coming-soon">
-          <div>Survival</div>
-        </x-link>
-
-        <x-link to="/coming-soon">
-          <div>PVP</div>
+          <div>PvP</div>
         </x-link>
       </div>
 

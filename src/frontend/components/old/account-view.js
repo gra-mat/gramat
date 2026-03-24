@@ -415,11 +415,10 @@ class AccountView extends LitElement {
         : html`<div class="avatar">${(this.userData.name || 'U')[0]}</div>`}
           <div class="profile-meta">
             <div class="profile-name">${this.userData.name}</div>
-            <div class="profile-level">Lvl ${lvl} • ${this.userData.points ?? 0} XP</div>
             <div class="profile-actions">
-              <div class="small-badge">Rank: Beginner</div>
-              <div style="width:8px"></div>
-              <div class="small-badge">${this.userData.completedLessonsCount ?? 0} lessons</div>
+              <div class="small-badge">Poziom ${lvl}</div>
+              <div class="small-badge">${this.userData.points ?? 0} XP</div>
+              <div class="small-badge">Ukończone lekcje: ${ JSON.parse(this.userData.stats).completedLessons }</div>
             </div>
             <button class="settings-btn" @click=${this.toggleSettings}>Ustawienia konta</button>
           </div>

@@ -1,13 +1,13 @@
 import { css, html, LitElement } from "../../lib/lit.min.js";
 
 const topics = {
-  "arytmetyka": [
+  "Arytmetyka": [
     "1", "2",
     "3", "4",
     "5", "6",
     "7", "8",
   ],
-  "geometria": [
+  "Geometria": [
     "1", "2",
     "3", "4",
     "5",

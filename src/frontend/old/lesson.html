@@ -11,6 +11,7 @@
     <script type="module" src="../components/exercises/partial/success-mark.js"></script>
     <script type="module" src="../components/old/summary-viewer.js"></script>
     <script type="module" src="../components/exercises/fraction-exercise.js"></script>
+    <script type="module" src="../components/exercises/calculate-area.js"></script>
 
     <style>
       html, body {
@@ -27,6 +28,7 @@
     <x-exercise-view>
       <x-addsub-exercise id="addsub-ex" style="display: none;"></x-addsub-exercise>
       <x-fraction-exercise id="fraction-ex" style="display: none;"></x-fraction-exercise>
+      <x-calculate-area id="area-ex" style="display: none;"></x-calculate-area>
     </x-exercise-view>
 
     <summary-viewer
@@ -53,6 +55,7 @@
         const view = document.querySelector('x-exercise-view');
         const addSub = document.querySelector('x-addsub-exercise');
         const fraction = document.querySelector('x-fraction-exercise');
+        const area = document.querySelector('x-calculate-area');
 
         let startTime = Date.now();
         let correctAnswers = 0;
@@ -65,7 +68,11 @@
         const getComponentForExercise = (exercise) => {
           try {
             const props = JSON.parse(exercise.exerciseProperties || '{}');
+            const qt = props.question_type;
             const at = props.answer_type;
+            if (qt === 'calculate_area_square') {
+              return area;
+            }
             if (at === 'selector' || at === 'multiplechoice' || at === 'matching' ||
                 (at === 'keypad' && exercise.exerciseAnswer && exercise.exerciseAnswer.includes("/"))) {
               return fraction;
@@ -95,9 +102,29 @@
             props.answer_type === 'matching' ||
             (props.answer_type === 'keypad' && current.exerciseAnswer && current.exerciseAnswer.includes("/"));
 
-          if (isFractionType) {
+          if (props.question_type === 'calculate_area_square') {
+            fraction.style.display = 'none';
+            addSub.style.display = 'none';
+            area.style.display = 'block';
+
+            area.exerciseId = current.id;
+            area.exercise = current.exerciseQuestion || '';
+            area.solution = current.exerciseAnswer || '';
+            area.square_side_length = props.side_length;
+            area.config = props || { answer_type: 'keypad' };
+            area.given = '';
+            area.orderStage = 1;
+            area.orderError = null;
+            area.orderOperations = [];
+            area.selectedOpIndex = null;
+            area.resultOptions = [];
+            area.selectedResult = null;
+            area.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+          }
+          else if (isFractionType) {
             fraction.style.display = 'block';
             addSub.style.display = 'none';
+            area.style.display = 'none';
 
             fraction.exerciseId = current.id;
             fraction.exercise = current.exerciseQuestion || '';
@@ -126,6 +153,7 @@
           } else {
             fraction.style.display = 'none';
             addSub.style.display = 'block';
+            area.style.display = 'none';
 
             addSub.exercise = current.exerciseQuestion || '';
             addSub.solution = current.exerciseAnswer || '';

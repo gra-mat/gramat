@@ -112,7 +112,11 @@
             area.solution = current.exerciseAnswer || '';
             area.square_side_length = props.side_length;
             area.config = props || { answer_type: 'keypad' };
-            area.given = '';
+            if (area.config.answer_type === 'slider' && area.config.answer_length) {
+              area.given = Math.floor(Math.pow(10, parseInt(area.config.answer_length)) / 2).toString();
+            } else {
+              area.given = '';
+            }
             area.orderStage = 1;
             area.orderError = null;
             area.orderOperations = [];
@@ -158,7 +162,11 @@
             addSub.exercise = current.exerciseQuestion || '';
             addSub.solution = current.exerciseAnswer || '';
             addSub.config = props || { answer_type: 'keypad' };
-            addSub.given = '';
+            if (addSub.config.answer_type === 'slider' && addSub.config.answer_length) {
+              addSub.given = Math.floor(Math.pow(10, parseInt(addSub.config.answer_length)) / 2).toString();
+            } else {
+              addSub.given = '';
+            }
             addSub.orderStage = 1;
             addSub.orderError = null;
             addSub.orderOperations = [];

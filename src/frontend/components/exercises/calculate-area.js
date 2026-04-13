@@ -725,7 +725,6 @@ class CalculateArea extends LitElement {
     }
   
     render() {
-      console.log(this.solution);
       return html`
         <x-success-mark id="mark"></x-success-mark>
         <div class="container">

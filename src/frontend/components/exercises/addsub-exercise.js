@@ -577,7 +577,6 @@ updated(changedProps) {
           <x-input-slider 
             min="${this.sliderMin}" 
             max="${this.sliderMax}" 
-            .value="${parseInt(this.given)}"
             @value-changed="${this.handleInput}"
           ></x-input-slider>
         `;

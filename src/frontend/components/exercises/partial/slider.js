@@ -47,9 +47,9 @@ export class InputSlider extends LitElement {
 
   constructor() {
     super();
-    this.value = 0; 
     this.min = 0; 
     this.max = 10;
+    this.value = Math.floor((this.min + this.max) / 2); 
   }
 
   _handleInput(e) {

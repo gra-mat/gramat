@@ -407,13 +407,16 @@ class CalculateArea extends LitElement {
   
             if (mark && typeof mark.show === 'function') {
               mark.show();
+              const handleSuccessComplete = () => {
+                mark.removeEventListener('success-complete', handleSuccessComplete);
+                this._dispatchAnswerComplete(true);
+              };
+              mark.addEventListener('success-complete', handleSuccessComplete);
             } else {
               this._dispatchAnswerComplete(true);
             }
   
             correct = true;
-  
-            setTimeout(() => this._dispatchAnswerComplete(true), 1200);
           } else {
             this.orderError = 'Wynik jest niepoprawny. Spróbuj jeszcze raz.';
   
@@ -471,13 +474,6 @@ class CalculateArea extends LitElement {
       }
   
       this.isCorrect = correct;
-  
-      if (correct) {
-        const mark = this.shadowRoot.getElementById('mark');
-        if (!mark) {
-          setTimeout(() => this._dispatchAnswerComplete(true), 1000);
-        }
-      }
   
       setTimeout(() => {
         this._checkInProgress = false;
@@ -611,6 +607,8 @@ class CalculateArea extends LitElement {
                 ${this.renderGrid(this.square_side_length)}
             </div>
           `;
+        default:
+          return html`<div>${this.exercise}</div>`;
       }
     }
 

@@ -366,13 +366,16 @@ class AddSubExercise extends LitElement {
 
           if (mark && typeof mark.show === 'function') {
             mark.show();
+            const handleSuccessComplete = () => {
+              mark.removeEventListener('success-complete', handleSuccessComplete);
+              this._dispatchAnswerComplete(true);
+            };
+            mark.addEventListener('success-complete', handleSuccessComplete);
           } else {
             this._dispatchAnswerComplete(true);
           }
 
           correct = true;
-
-          setTimeout(() => this._dispatchAnswerComplete(true), 1200);
         } else {
           this.orderError = 'Wynik jest niepoprawny. Spróbuj jeszcze raz.';
 
@@ -430,13 +433,6 @@ class AddSubExercise extends LitElement {
     }
 
     this.isCorrect = correct;
-
-    if (correct) {
-      const mark = this.shadowRoot.getElementById('mark');
-      if (!mark) {
-        setTimeout(() => this._dispatchAnswerComplete(true), 1000);
-      }
-    }
 
     setTimeout(() => {
       this._checkInProgress = false;
@@ -532,6 +528,8 @@ class AddSubExercise extends LitElement {
 updated(changedProps) {
     if (changedProps.has('exerciseId')) {
       const id = this.exerciseId || Number(this.getAttribute('exercise-id'));
+      this.given = '';
+      this.statuses = [];
       if (id && typeof this._loadExercise === 'function') {
         const hasManualExercise = this.exercise && this.exercise !== 'Ładowanie...';
         if (!hasManualExercise) {
@@ -551,6 +549,8 @@ updated(changedProps) {
         exerciseWithImgs = exerciseWithImgs.replace(/{(\S*)}/gm, '<img class="exercise_image" src="../exercise_images/$1"/>');
         exerciseWithImgs = exerciseWithImgs.replace(/\\n/gm, '<br/>');
         return html`${unsafeHTML(exerciseWithImgs)}`;
+      default:
+        return html`${this.exercise}`;
     }
   }
 

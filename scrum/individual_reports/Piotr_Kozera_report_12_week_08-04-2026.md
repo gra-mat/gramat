@@ -35,12 +35,12 @@ Wraz zespołem obmyśliliśmy innowacje jakie można byłoby wprowadzić do proj
  Jedna z powyższych innowacji może zostać wybrana i wprowadzona w przyszłości do projektu.
 ### Samoocena:
 
-| Obszar             | Ocena (1–5) | Komentarz                                                                                                                                                                                               |     |
-| ------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| Zaangażowanie      | 5           | Wykonałem wszystkie zadania jakie miałem zaplanowane do zrobienia oraz pomogłem w realizacji jednego z nich koledze z zespołu                                                                           |     |
-| Wkład merytoryczny | 4.5         | Dzięki poprawkom błędów aplikacja działa na znacznie lepszym poziomie                                                                                                                                   |     |
-| Komunikacja        | 4           | W zespole porozumieliśmy się co do tego kto ma wykonywać jakie zadania i je zrealizowaliśmy, ale nie ustaliliśmy jeszcze jeden innowacji do realizacji tylko obmyśliliśmy kilka różnych pomysłów na nią |     |
-| Terminowość        | 4.5         | Zadania zostało wykonane w przeznaczonym na nie czasie, poza wybraniem jednej innowacji z obmyślonych                                                                                                   |     |
+| Obszar             | Ocena (1–5) | Komentarz                                                                                                                                                                                               |
+| ------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Zaangażowanie      | 5           | Wykonałem wszystkie zadania jakie miałem zaplanowane do zrobienia oraz pomogłem w realizacji jednego z nich koledze z zespołu                                                                           |
+| Wkład merytoryczny | 4.5         | Dzięki poprawkom błędów aplikacja działa na znacznie lepszym poziomie                                                                                                                                   |
+| Komunikacja        | 4           | W zespole porozumieliśmy się co do tego kto ma wykonywać jakie zadania i je zrealizowaliśmy, ale nie ustaliliśmy jeszcze jeden innowacji do realizacji tylko obmyśliliśmy kilka różnych pomysłów na nią |
+| Terminowość        | 4.5         | Zadania zostało wykonane w przeznaczonym na nie czasie, poza wybraniem jednej innowacji z obmyślonych                                                                                                   |
 
 ### Refleksja:
 

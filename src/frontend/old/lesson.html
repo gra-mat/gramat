@@ -110,6 +110,7 @@
             area.exerciseId = current.id;
             area.exercise = current.exerciseQuestion || '';
             area.solution = current.exerciseAnswer || '';
+            area.difficultyId = current.difficultyId || null;
             area.square_side_length = props.side_length;
             area.config = props || { answer_type: 'keypad' };
             if (area.config.answer_type === 'slider' && area.config.answer_length) {
@@ -136,6 +137,7 @@
 
             const parts = (current.exerciseAnswer || '').toString().split('/');
             fraction.solution = { numerator: parts[0] || '', denominator: parts[1] || '' };
+            fraction.difficultyId = current.difficultyId || null;
             
 
             if (typeof current.exerciseAnswer === 'string' && current.exerciseAnswer.includes(',')) {
@@ -161,6 +163,7 @@
 
             addSub.exercise = current.exerciseQuestion || '';
             addSub.solution = current.exerciseAnswer || '';
+            addSub.difficultyId = current.difficultyId || null;
             addSub.config = props || { answer_type: 'keypad' };
             if (addSub.config.answer_type === 'slider' && addSub.config.answer_length) {
               addSub.given = Math.floor(Math.pow(10, parseInt(addSub.config.answer_length)) / 2).toString();

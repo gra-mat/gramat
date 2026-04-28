@@ -132,15 +132,23 @@ class AddSubExercise extends LitElement {
     this.orderError = null;
   }
 
-  calculateRange(solutionStr) {
-    const sol = parseInt(solutionStr);
-    if (isNaN(sol)) return;
-    this.sliderMin = 0; 
-    if (sol <= 10) this.sliderMax = 10;
-    else if (sol <= 20) this.sliderMax = 20;
-    else if (sol <= 50) this.sliderMax = 50;
-    else if (sol <= 100) this.sliderMax = 100;
-    else this.sliderMax = Math.ceil(sol / 100) * 100;
+  calculateRange() {
+    let digits = null;
+    if (this.config.answer_length) {
+      digits = this.config.answer_length;
+    } else {
+      const sol = parseInt(this.solution);
+      if (isNaN(sol)) return;
+      digits = Math.abs(sol).toString().length;
+    }
+    if (digits == null) return;
+    if (digits != 1) {
+      this.sliderMin = Math.pow(10, digits - 1); 
+      this.sliderMax = Math.pow(10, digits); 
+    } else {
+      this.sliderMin = 0; 
+      this.sliderMax = 10; 
+    }
     this.given = Math.floor(this.sliderMax / 2).toString();
   }
 
@@ -500,7 +508,7 @@ class AddSubExercise extends LitElement {
       else this.config = { question_type: "text_only", answer_type: "keypad" };
 
       if (this.config.answer_type === 'slider') {
-        this.calculateRange(this.solution);
+        this.calculateRange();
       } else if (this.config.answer_type === 'order') {
         this._prepareOrderExercise();
       } else {
@@ -531,10 +539,7 @@ updated(changedProps) {
       this.given = '';
       this.statuses = [];
       if (id && typeof this._loadExercise === 'function') {
-        const hasManualExercise = this.exercise && this.exercise !== 'Ładowanie...';
-        if (!hasManualExercise) {
           this._loadExercise(id);
-        }
       }
     }
   }
@@ -576,7 +581,8 @@ updated(changedProps) {
         return html`
           <x-input-slider 
             min="${this.sliderMin}" 
-            max="${this.sliderMax}" 
+            max="${this.sliderMax}"
+            value=${Math.floor(this.sliderMax / 2).toString()}
             @value-changed="${this.handleInput}"
           ></x-input-slider>
         `;

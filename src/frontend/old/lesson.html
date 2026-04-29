@@ -166,7 +166,9 @@
             addSub.difficultyId = current.difficultyId || null;
             addSub.config = props || { answer_type: 'keypad' };
             if (addSub.config.answer_type === 'slider' && addSub.config.answer_length) {
+              console.log('dcds');
               addSub.given = Math.floor(Math.pow(10, parseInt(addSub.config.answer_length)) / 2).toString();
+              console.log(`given: ${addSub.given}`);
             } else {
               addSub.given = '';
             }

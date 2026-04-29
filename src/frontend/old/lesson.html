@@ -114,9 +114,15 @@
             area.square_side_length = props.side_length;
             area.config = props || { answer_type: 'keypad' };
             if (area.config.answer_type === 'slider' && area.config.answer_length) {
-              area.given = Math.floor(Math.pow(10, parseInt(area.config.answer_length)) / 2).toString();
-            } else {
-              area.given = '';
+              const digits = parseInt(area.config.answer_length);
+              if (digits != 1) {
+                area.sliderMin = Math.pow(10, digits - 1); 
+                area.sliderMax = Math.pow(10, digits); 
+              } else {
+                area.sliderMin = 0; 
+                area.sliderMax = 10; 
+              }
+              area.given = Math.floor(Math.pow(10, digits) / 2).toString();
             }
             area.orderStage = 1;
             area.orderError = null;
@@ -166,11 +172,15 @@
             addSub.difficultyId = current.difficultyId || null;
             addSub.config = props || { answer_type: 'keypad' };
             if (addSub.config.answer_type === 'slider' && addSub.config.answer_length) {
-              console.log('dcds');
-              addSub.given = Math.floor(Math.pow(10, parseInt(addSub.config.answer_length)) / 2).toString();
-              console.log(`given: ${addSub.given}`);
-            } else {
-              addSub.given = '';
+              const digits = parseInt(addSub.config.answer_length);
+              if (digits != 1) {
+                addSub.sliderMin = Math.pow(10, digits - 1); 
+                addSub.sliderMax = Math.pow(10, digits); 
+              } else {
+                addSub.sliderMin = 0; 
+                addSub.sliderMax = 10; 
+              }
+              addSub.given = Math.floor(Math.pow(10, addSub.config.answer_length) / 2).toString();
             }
             addSub.orderStage = 1;
             addSub.orderError = null;

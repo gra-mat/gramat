@@ -12,6 +12,7 @@
     <script type="module" src="../components/old/summary-viewer.js"></script>
     <script type="module" src="../components/exercises/fraction-exercise.js"></script>
     <script type="module" src="../components/exercises/calculate-area.js"></script>
+    <script type="module" src="../components/exercises/percentage-exercise.js"></script>
 
     <style>
       html, body {
@@ -21,6 +22,7 @@
         color: white;
         margin: 0;
       }
+
     </style>
   </head>
 
@@ -29,6 +31,7 @@
       <x-addsub-exercise id="addsub-ex" style="display: none;"></x-addsub-exercise>
       <x-fraction-exercise id="fraction-ex" style="display: none;"></x-fraction-exercise>
       <x-calculate-area id="area-ex" style="display: none;"></x-calculate-area>
+      <x-percentage-exercise id="percentage-ex" style="display:none;"></x-percentage-exercise>
     </x-exercise-view>
 
     <summary-viewer
@@ -56,6 +59,7 @@
         const addSub = document.querySelector('x-addsub-exercise');
         const fraction = document.querySelector('x-fraction-exercise');
         const area = document.querySelector('x-calculate-area');
+        const percentage = document.querySelector('x-percentage-exercise');
 
         let startTime = Date.now();
         let correctAnswers = 0;
@@ -70,18 +74,25 @@
             const props = JSON.parse(exercise.exerciseProperties || '{}');
             const qt = props.question_type;
             const at = props.answer_type;
+
+            if (exercise.exerciseQuestion && exercise.exerciseQuestion.includes('%')) {
+              return percentage;
+            }
+
             if (qt === 'calculate_area_square') {
               return area;
             }
+
             if (at === 'selector' || at === 'multiplechoice' || at === 'matching' ||
                 (at === 'keypad' && exercise.exerciseAnswer && exercise.exerciseAnswer.includes("/"))) {
               return fraction;
             }
+
             return addSub;
           } catch {
             return addSub;
           }
-        };
+        }
 
         function showExercise(idx) {
           const current = exercises[idx];
@@ -101,6 +112,24 @@
             props.answer_type === 'multiplechoice' ||
             props.answer_type === 'matching' ||
             (props.answer_type === 'keypad' && current.exerciseAnswer && current.exerciseAnswer.includes("/"));
+
+          if (current.exerciseQuestion && current.exerciseQuestion.includes('%')) {
+            fraction.style.display = 'none';
+            addSub.style.display = 'none';
+            area.style.display = 'none';
+            percentage.style.display = 'block';
+
+            percentage.exerciseId = current.id;
+            percentage.exercise = current.exerciseQuestion || '';
+            percentage.solution = (current.exerciseAnswer || '').toString().trim();
+            percentage.difficultyId = current.difficultyId || null;
+            percentage.config = props || { answer_type: 'keypad' };
+            percentage.given = '';
+            percentage.statuses = [];
+
+            percentage.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+            return;
+          }
 
           if (props.question_type === 'calculate_area_square') {
             fraction.style.display = 'none';
@@ -131,8 +160,10 @@
             area.resultOptions = [];
             area.selectedResult = null;
             area.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+            return;
           }
-          else if (isFractionType) {
+
+          if (isFractionType) {
             fraction.style.display = 'block';
             addSub.style.display = 'none';
             area.style.display = 'none';
@@ -144,7 +175,6 @@
             const parts = (current.exerciseAnswer || '').toString().split('/');
             fraction.solution = { numerator: parts[0] || '', denominator: parts[1] || '' };
             fraction.difficultyId = current.difficultyId || null;
-            
 
             if (typeof current.exerciseAnswer === 'string' && current.exerciseAnswer.includes(',')) {
               fraction._expectedAnswers = current.exerciseAnswer.split(',').map(s => s.trim());
@@ -162,41 +192,43 @@
 
             fraction.statuses = ["", ""];
             fraction.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
-          } else {
-            fraction.style.display = 'none';
-            addSub.style.display = 'block';
-            area.style.display = 'none';
-
-            addSub.exercise = current.exerciseQuestion || '';
-            addSub.solution = current.exerciseAnswer || '';
-            addSub.difficultyId = current.difficultyId || null;
-            addSub.config = props || { answer_type: 'keypad' };
-            if (addSub.config.answer_type === 'slider' && addSub.config.answer_length) {
-              const digits = parseInt(addSub.config.answer_length);
-              if (digits != 1) {
-                addSub.sliderMin = Math.pow(10, digits - 1); 
-                addSub.sliderMax = Math.pow(10, digits); 
-              } else {
-                addSub.sliderMin = 0; 
-                addSub.sliderMax = 10; 
-              }
-              addSub.given = Math.floor(Math.pow(10, addSub.config.answer_length) / 2).toString();
-            }
-            addSub.orderStage = 1;
-            addSub.orderError = null;
-            addSub.orderOperations = [];
-            addSub.selectedOpIndex = null;
-            addSub.resultOptions = [];
-            addSub.selectedResult = null;
-
-            if (addSub.config.answer_type === 'order') {
-              addSub._prepareOrderExercise();
-            }
-
-            addSub.exerciseId = current.id;
-            addSub.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+            return;
           }
+
+          fraction.style.display = 'none';
+          addSub.style.display = 'block';
+          area.style.display = 'none';
+
+          addSub.exercise = current.exerciseQuestion || '';
+          addSub.solution = current.exerciseAnswer || '';
+          addSub.difficultyId = current.difficultyId || null;
+          addSub.config = props || { answer_type: 'keypad' };
+          if (addSub.config.answer_type === 'slider' && addSub.config.answer_length) {
+            const digits = parseInt(addSub.config.answer_length);
+            if (digits != 1) {
+              addSub.sliderMin = Math.pow(10, digits - 1); 
+              addSub.sliderMax = Math.pow(10, digits); 
+            } else {
+              addSub.sliderMin = 0; 
+              addSub.sliderMax = 10; 
+            }
+            addSub.given = Math.floor(Math.pow(10, addSub.config.answer_length) / 2).toString();
+          }
+          addSub.orderStage = 1;
+          addSub.orderError = null;
+          addSub.orderOperations = [];
+          addSub.selectedOpIndex = null;
+          addSub.resultOptions = [];
+          addSub.selectedResult = null;
+
+          if (addSub.config.answer_type === 'order') {
+            addSub._prepareOrderExercise();
+          }
+
+          addSub.exerciseId = current.id;
+          addSub.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
         }
+
 
         const updateTimer = () => {
           const elapsedTime = Date.now() - startTime;

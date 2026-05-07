@@ -6,6 +6,7 @@ import "./partial/slider.js";
 import "./partial/success-mark.js";
 import "./partial/drag-drop.js";
 import "./partial/find-error.js";
+import "./partial/explanation-popup.js";
 
 class AddSubExercise extends LitElement {
   static properties = {
@@ -109,6 +110,34 @@ class AddSubExercise extends LitElement {
       font-size: 0.95rem;
       text-align: center;
       max-width: 520px;
+    }
+
+    .show-explanation {
+      padding: 0.5rem 0.75rem;
+      border-radius: 50%;
+      width: 3rem;
+      height: 3rem;
+      border: 2px solid rgba(120, 119, 198, 0.6);
+      background-color: rgba(120, 119, 198, 0.15);
+      color: rgba(237, 240, 255, 0.9);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .show-explanation:hover {
+      background-color: rgba(120, 119, 198, 0.3);
+      border-color: rgba(120, 119, 198, 0.9);
+      transform: scale(1.1);
+      box-shadow: 0 0 15px rgba(120, 119, 198, 0.4);
+    }
+
+    .show-explanation:active {
+      transform: scale(0.95);
     }
    `;
 
@@ -676,7 +705,16 @@ updated(changedProps) {
         ${this.renderDifficultyIndicator()}
         <div class="question">${this.renderExerciseQuestion()}</div>
         ${this.renderExerciseContent()}
+                    ${this.config.explanation_id !== undefined ? html`<button class="show-explanation" @click="${() => this.shadowRoot.querySelector('x-explanation-popup').visible = true}">?</button>` : null}
+        
+        <x-explanation-popup 
+          title="Dodawanie"
+          description="Dodawanie polega na łączeniu kilku rzeczy w jedną większą grupę, żeby sprawdzić, ile jest ich razem.
+Kiedy do czegoś dokładamy więcej, używamy znaku „+”, który oznacza „dodaj”.
+Na przykład 2 klocki + 3 klocki to razem 5 klocków."
+        ></x-explanation-popup>
       </div>
+
     `;
   }
 }

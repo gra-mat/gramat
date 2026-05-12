@@ -267,9 +267,9 @@
             const accuracy = Math.round((correctAnswers / total) * 100);
             const xp = (correctAnswers * 10).toFixed(0);
 
-            summary.setAttribute("time", `${minutes}m ${seconds}s`);
-            summary.setAttribute("accuracy", `${accuracy}%`);
-            summary.setAttribute("xp", `+${xp} XP`);
+            summary.time = `${minutes}m ${seconds}s`;
+            summary.accuracy = `${accuracy}%`;
+            summary.xp = `+${xp} XP`;
             summary.classList.remove("hidden");
 
             clearInterval(timerInterval);

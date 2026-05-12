@@ -257,11 +257,53 @@ async function init() {
     //wysylanie danych do fronta
     app.get('/api/me', (req: any, res) => {
             if (req.user) {
-                const { password, ...safeUser } = req.user; 
+                const { password, ...safeUser } = req.user;
                 res.json(safeUser);
             } else {
                 res.status(401).json({ error: 'Not logged in' });
             }
+    });
+
+    app.get('/api/me/completedLessons', async (req: any, res) => {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+
+        let stats: any = {};
+        try {
+            const freshUser = await userRepository.getUserById(req.user.id);
+            const statsStr = freshUser.getStats();
+            stats = statsStr ? JSON.parse(statsStr) : {};
+        } catch (err) {
+            console.error('Error fetching fresh user stats:', err);
+            stats = {};
+        }
+
+        const branchProgress = (stats.math_branches && typeof stats.math_branches === 'object') ? stats.math_branches : {};
+
+        try {
+            const lessons = await lessonRepository.getLessonList();
+            const completedLessons = await Promise.all(lessons.map(async (lesson) => {
+                let done = false;
+                try {
+                    const mathBranch = await mathBranchRepository.getMathBranchByLessonId(lesson.getId());
+                    const branchId = mathBranch.getId().toString();
+                    const branchData = branchProgress[branchId];
+                    if (branchData && branchData['next-lesson'] !== undefined) {
+                        const nextLesson = parseInt(branchData['next-lesson']);
+                        done = lesson.getId() < nextLesson;
+                    }
+                } catch (_err) {
+                    done = false;
+                }
+                return { id: lesson.getId(), name: lesson.getName(), done };
+            }));
+
+            res.json(completedLessons);
+        } catch (err: any) {
+            console.error(err);
+            res.status(500).json({ error: err.message || 'Failed to fetch completed lessons' });
+        }
     });
 
     app.get('/api/me/cashedAvatar', async (req: any, res) => {
@@ -338,9 +380,9 @@ async function init() {
     }
     const userId = req.user.id;
 
-    const lessonId = req.body.lessonId;
-    if (!lessonId) {
-        return res.status(400).json({ error: 'lessonId is required' });
+    const lessonId = parseInt(req.body.lessonId);
+    if (!lessonId || isNaN(lessonId)) {
+        return res.status(400).json({ error: 'lessonId is required and must be a number' });
     }
     const time = req.body.time;
     if (!time) {
@@ -355,16 +397,20 @@ async function init() {
         return res.status(400).json({ error: 'xp is required' });
     }
 
-    userRepository.checkIfUserExists(userId).then(async (exists) => {
+    try {
+        const exists = await userRepository.checkIfUserExists(userId);
         if (!exists) {
             return res.status(404).json({ error: 'User not found' });
         }
 
         const user = await userRepository.getUserById(userId);
-        user.setPoints(user.getPoints() + xp);
+        user.setPoints((user.getPoints() || 0) + xp);
+        
         let rawStats = user.getStats();
         let stats = rawStats ? JSON.parse(rawStats) : { completedLessons: 0, perfectlyCompletedLessons: 0, math_branches: {} };
-        mathBranchRepository.getMathBranchByLessonId(lessonId).then(async (mathBranch) => {
+        
+        try {
+            const mathBranch = await mathBranchRepository.getMathBranchByLessonId(lessonId);
             if (mathBranch) {
                 const mathBranchId = mathBranch.getId().toString();
                 if (stats["math_branches"].hasOwnProperty(mathBranchId)) {
@@ -376,7 +422,7 @@ async function init() {
                         }
                     }
                 } else {
-                    stats["math_branches"][mathBranchId] = { "next-lesson": parseInt(lessonId) + 1 };
+                    stats["math_branches"][mathBranchId] = { "next-lesson": lessonId + 1 };
                     stats["completedLessons"] += 1;
                     if (accuracy === 100) {
                         stats["perfectlyCompletedLessons"] += 1;
@@ -386,19 +432,24 @@ async function init() {
             } else {
                 return res.status(400).json({ error: 'math branch not found' });
             }
-        });
-        await userRepository.updateUser(user).then(() => {
-            achievementUnlockRepository.updateAchievementUnlocks(userId).then(() => {
-                return res.json({ message: 'User stats updated successfully' });
-            }).catch((err : Error) => {
-                console.error(err);
-                return res.status(500).json({ error: 'Failed to update achievements' });
-            });
-        }).catch((err) => {
-            console.error(err);
-            return res.status(500).json({ error: 'Failed to update user stats' });
-        });
-    });
+        } catch (err) {
+            console.error('Error getting math branch:', err);
+            return res.status(400).json({ error: 'math branch not found' });
+        }
+
+        await userRepository.updateUser(user);
+        
+        try {
+            await achievementUnlockRepository.updateAchievementUnlocks(userId);
+        } catch (err) {
+            console.error('Error updating achievements:', err);
+        }
+
+        return res.json({ message: 'User stats updated successfully' });
+    } catch (err: any) {
+        console.error('Error in lessonCompleted:', err);
+        return res.status(500).json({ error: 'Failed to update user stats' });
+    }
 
     });
 }

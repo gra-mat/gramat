@@ -200,7 +200,7 @@ export class UserRepository {
                         changes.push('user_suggested_exercises = ?');
                         params.push(user.getSuggestedExercises());
                     }
-                    if (JSON.parse(user.getStats() as string) !== JSON.parse(existingUser.getStats() as string)) {
+                    if (JSON.stringify(JSON.parse(user.getStats() || '{}')) !== JSON.stringify(JSON.parse(existingUser.getStats() || '{}'))) {
                         changes.push('user_stats = ?');
                         params.push(user.getStats());
                     }

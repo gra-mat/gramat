@@ -344,14 +344,22 @@ class AccountView extends LitElement {
 
       this.userData = await res.json();
 
-      if (!this.userData.completedLessons) {
+      const completedRes = await fetch('/api/me/completedLessons');
+      if (completedRes.status === 200) {
+        this.userData.completedLessons = await completedRes.json();
+      } else {
         this.userData.completedLessons = [
-          { id: '1', name: 'Dodawanie do 10', image: '../icons/1.png', done: true },
-          { id: '2', name: 'Dodawanie do 100', image: '../icons/2.png', done: true },
-          { id: '3', name: 'Odejmowanie do 10', image: '../icons/3.png', done: false },
-          { id: '4', name: 'Odejmowanie do 100', image: '../icons/4.png', done: false },
+          { id: 1, name: 'Dodawanie do 10', done: true },
+          { id: 2, name: 'Dodawanie do 100', done: true },
+          { id: 3, name: 'Odejmowanie do 10', done: false },
+          { id: 4, name: 'Odejmowanie do 100', done: false },
         ];
       }
+
+      this.userData.completedLessons = this.userData.completedLessons.map(lesson => ({
+        ...lesson,
+        image: lesson.image || `../icons/${lesson.id}.png`,
+      }));
 
       this.userMistakes = [
         'Zadanie 1: 2+2=6',
@@ -415,11 +423,20 @@ class AccountView extends LitElement {
         : html`<div class="avatar">${(this.userData.name || 'U')[0]}</div>`}
           <div class="profile-meta">
             <div class="profile-name">${this.userData.name}</div>
-            <div class="profile-actions">
-              <div class="small-badge">Poziom ${lvl}</div>
-              <div class="small-badge">${this.userData.points ?? 0} XP</div>
-              <div class="small-badge">Ukończone lekcje: ${ JSON.parse(this.userData.stats).completedLessons }</div>
-            </div>
+
+            ${(() => {
+              let stats = {};
+              try { stats = JSON.parse(this.userData.stats || "{}"); }
+              catch { stats = {}; }
+              return html`
+                <div class="profile-actions">
+                  <div class="small-badge">Poziom ${lvl}</div>
+                  <div class="small-badge">${this.userData.points ?? 0} XP</div>
+                  <div class="small-badge">Ukończone lekcje: ${stats.completedLessons ?? 0}</div>
+                </div>
+              `;
+            })()}
+
             <button class="settings-btn" @click=${this.toggleSettings}>Ustawienia konta</button>
           </div>
         </div>
@@ -485,8 +502,8 @@ class AccountView extends LitElement {
         </div>
       </div>
     </div>
-        <x-navbar></x-navbar>
-    <!-- MISTAKES modal -->
+
+    <x-navbar></x-navbar>
 
     <div class="modal ${this.isMistakesOpen ? 'open' : ''}" @click="${(e) => { if (e.target.classList.contains('modal')) this.toggleMistakes(); }}">
       <div class="modal-content" @click="${e => e.stopPropagation()}">
@@ -502,8 +519,6 @@ class AccountView extends LitElement {
       </div>
     </div>
 
-    <!-- WEAKNESSES modal -->
-
     <div class="modal ${this.isWeaknessesOpen ? 'open' : ''}" @click="${(e) => { if (e.target.classList.contains('modal')) this.toggleWeaknesses(); }}">
       <div class="modal-content" @click="${e => e.stopPropagation()}">
         <div class="modal-header">Słabe strony</div>
@@ -513,7 +528,8 @@ class AccountView extends LitElement {
         <div class="modal-actions"><button class="btn" @click=${this.toggleWeaknesses}>Zamknij</button></div>
       </div>
     </div>
-    `;
+  `;
+
   }
 }
 

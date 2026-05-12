@@ -142,7 +142,7 @@ class SummaryViewer extends LitElement {
       bubbles: true,
       composed: true
     }));
-    window.location.href = '/#campaign';
+    window.location.href = '/old/account.html';
   }
 }
 

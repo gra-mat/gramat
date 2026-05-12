@@ -1,4 +1,4 @@
-import { css, html, LitElement, unsafeHTML } from "../../lib/lit.min.js";
+import { css, html, LitElement, unsafeHTML, until } from "../../lib/lit.min.js";
 
 import "./partial/keypad.js";
 import "./partial/field.js";
@@ -698,6 +698,22 @@ updated(changedProps) {
     }
   }
 
+  async renderExplanationPopup() {
+    console.log('Ładowanie objaśnienia dla ID:', this.config.explanation_id);
+    const response = await fetch(`/api/explanation/${this.config.explanation_id}`)
+    const explanation = await response.json();
+    if (!explanation || !explanation.title || !explanation.description) {
+      console.error('Nieprawidłowe dane objaśnienia:', explanation);
+      return;
+    } 
+    console.log('Zaladowano objaśnienie:', explanation);
+    return html`<x-explanation-popup title="${explanation.title}" description="${explanation.description}"></x-explanation-popup>`;
+  }
+  
+  renderExplanationPopupBtn() {
+    return html`<button class="show-explanation" @click="${() => this.shadowRoot.querySelector('x-explanation-popup').visible = true}">?</button>`;
+  }
+
   render() {
     return html`
       <x-success-mark id="mark"></x-success-mark>
@@ -705,16 +721,9 @@ updated(changedProps) {
         ${this.renderDifficultyIndicator()}
         <div class="question">${this.renderExerciseQuestion()}</div>
         ${this.renderExerciseContent()}
-                    ${this.config.explanation_id !== undefined ? html`<button class="show-explanation" @click="${() => this.shadowRoot.querySelector('x-explanation-popup').visible = true}">?</button>` : null}
-        
-        <x-explanation-popup 
-          title="Dodawanie"
-          description="Dodawanie polega na łączeniu kilku rzeczy w jedną większą grupę, żeby sprawdzić, ile jest ich razem.
-Kiedy do czegoś dokładamy więcej, używamy znaku „+”, który oznacza „dodaj”.
-Na przykład 2 klocki + 3 klocki to razem 5 klocków."
-        ></x-explanation-popup>
+        ${this.config.explanation_id !== undefined ? this.renderExplanationPopupBtn() : null}
+        ${this.config.explanation_id !== undefined ? until(this.renderExplanationPopup()) : null}
       </div>
-
     `;
   }
 }

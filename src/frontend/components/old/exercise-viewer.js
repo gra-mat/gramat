@@ -150,6 +150,10 @@ class ExerciseView extends LitElement {
       cursor: pointer;
     }
 
+    .button:hover {
+      background-color: rgba(255, 255, 255, 0.25);
+    }
+
     @media (max-width: 640px) {
       #exercise-wrap { width: 95%; }
       .header { padding-left: 0.6rem; padding-right: 0.6rem; }

@@ -36,6 +36,10 @@ import { UserRepository } from './models/UserRepository.ts';
 import { UserController } from './controllers/UserController.ts';
 import { userRoutes } from './routes/UserRoutes.ts';
 
+import { ExplanationRepository } from './models/ExplanationRepository.ts';
+import { ExplanationController } from './controllers/ExplanationController.ts';
+import { explanationRoutes } from './routes/ExplanationRoutes.ts';
+
 import { fileURLToPath } from 'url';
 
 import path from 'path';
@@ -53,7 +57,7 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-app.use(session({ secret: `${process.env.SESSION_SECRET}` || 'default_secret' }));
+app.use(session({ secret: `${process.env.SESSION_SECRET}` || 'default_secret', resave: true, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -109,6 +113,10 @@ async function init() {
     const userRepository = new UserRepository(db);
     const userController = new UserController(userRepository);
     app.use("/api/user", userRoutes(userController));
+
+    const explanationRepository = new ExplanationRepository(db);
+    const explanationController = new ExplanationController(explanationRepository);
+    app.use("/api/explanation", explanationRoutes(explanationController));
 
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
         throw new Error("Google OAuth credentials are not set in environment variables.");

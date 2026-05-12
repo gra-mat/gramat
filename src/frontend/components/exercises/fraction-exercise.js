@@ -1,10 +1,11 @@
-import { css, html, LitElement } from "../../lib/lit.min.js";
+import { css, html, LitElement, unsafeHTML, until } from "../../lib/lit.min.js";
 import "../exercises/partial/fraction-field.js";
 import "../exercises/partial/fraction-selector.js";
 import "../exercises/partial/fraction-keypad.js";
 import "../exercises/partial/success-mark.js";
 import "../exercises/partial/fraction-mc.js";
 import "../exercises/partial/fraction-matching.js";
+import "./partial/explanation-popup.js";
 
 class FractionExercise extends LitElement {
   static properties = {
@@ -37,6 +38,35 @@ class FractionExercise extends LitElement {
       background: var(--difficulty-color, #ccc);
     }
     .fields-group { display:flex; gap:12px; align-items:center; justify-content:center; }
+
+    .show-explanation {
+      padding: 0.5rem 0.75rem;
+      border-radius: 50%;
+      width: 3rem;
+      height: 3rem;
+      border: 2px solid rgba(120, 119, 198, 0.6);
+      background-color: rgba(120, 119, 198, 0.15);
+      color: rgba(237, 240, 255, 0.9);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .show-explanation:hover {
+      background-color: rgba(120, 119, 198, 0.3);
+      border-color: rgba(120, 119, 198, 0.9);
+      transform: scale(1.1);
+      box-shadow: 0 0 15px rgba(120, 119, 198, 0.4);
+    }
+
+    .show-explanation:active {
+      transform: scale(0.95);
+    }
+
     .x-success-mark, #mark { z-index:9999; position:absolute; pointer-events:none; left:0; top:0; }
   `;
 
@@ -448,6 +478,22 @@ class FractionExercise extends LitElement {
     return html`<div class="difficulty-indicator" style="--difficulty-color: ${info.color};"> <span class="dot"></span> <span>${info.label}</span> </div>`;
   }
 
+    async renderExplanationPopup() {
+    console.log('Ładowanie objaśnienia dla ID:', this.config.explanation_id);
+    const response = await fetch(`/api/explanation/${this.config.explanation_id}`)
+    const explanation = await response.json();
+    if (!explanation || !explanation.title || !explanation.description) {
+      console.error('Nieprawidłowe dane objaśnienia:', explanation);
+      return;
+    } 
+    console.log('Zaladowano objaśnienie:', explanation);
+    return html`<x-explanation-popup title="${explanation.title}" description="${explanation.description}"></x-explanation-popup>`;
+  }
+  
+  renderExplanationPopupBtn() {
+    return html`<button class="show-explanation" @click="${() => this.shadowRoot.querySelector('x-explanation-popup').visible = true}">?</button>`;
+  }
+
   render() {
     return html`
       <x-success-mark id="mark"></x-success-mark>
@@ -455,6 +501,8 @@ class FractionExercise extends LitElement {
         ${this.renderDifficultyIndicator()}
         <div class="question">${this.exercise}</div>
         ${this.renderExerciseContent()}
+        ${this.config.explanation_id !== undefined ? this.renderExplanationPopupBtn() : null}
+        ${this.config.explanation_id !== undefined ? until(this.renderExplanationPopup()) : null}
       </div>
     `;
   }

@@ -1,4 +1,4 @@
-import { css, html, LitElement } from "../../../lib/lit.min.js";
+import { css, html, LitElement, unsafeHTML } from "../../../lib/lit.min.js";
 
 export class ExplanationPopup extends LitElement {
   static properties = {
@@ -12,6 +12,7 @@ export class ExplanationPopup extends LitElement {
       --popup-border: #7877c6;
       --text-primary: #edf0ff;
       --text-secondary: rgba(237, 240, 255, 0.85);
+      --btn-hover: rgba(255, 255, 255, 0.25);
       --close-btn-hover: rgba(255, 119, 198, 0.2);
     }
 
@@ -107,11 +108,40 @@ export class ExplanationPopup extends LitElement {
     .hidden {
       display: none;
     }
+
+        #check-button {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.6rem 0;
+      background: transparent;
+    }
+
+    .button {
+      width: 85%;
+      max-width: 420px;
+      height: 48px;
+      border-radius: 10px;
+      font-size: 1rem;
+      background-color: #50518d;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .button:hover {
+      background-color: var(--btn-hover);
+    }
+
+    .explenation_image {
+      max-width: 100%;
+    }
   `;
 
   constructor() {
     super();
-    this.visible = false;
+    this.visible = true;
     this.title = "";
     this.description = "";
   }
@@ -158,20 +188,19 @@ export class ExplanationPopup extends LitElement {
     if (!this.visible) {
       return html`<div class="hidden"></div>`;
     }
+    console.log('Rendering ExplanationPopup with title:', this.title);
+    let descriptionWithImgs = this.description;
+    descriptionWithImgs = descriptionWithImgs.replace(/{(\S*)}/gm, '<img class="explenation_image" src="../../exercise_images/$1"/>');
+    descriptionWithImgs = descriptionWithImgs.replace(/\\n/gm, '<br/>');
 
     return html`
       <div class="overlay" @click="${this._handleOverlayClick}">
         <div class="popup-container" @click="${(e) => e.stopPropagation()}">
-          <button 
-            class="close-btn" 
-            @click="${this.close}"
-            aria-label="Zamknij popup"
-          >
-            ✕
-          </button>
           <h2 class="popup-title">${this.title}</h2>
-          <p class="popup-description">${this.description}</p>
-          <img src="../../../exercise_images/addition_explanation.png" width="100%">
+          ${unsafeHTML(descriptionWithImgs)}
+          <div id="check-button">
+            <button class="button" title="Przejdź do zadania" @click="${this.close}">Przejdź do zadania</button>
+          </div>
         </div>
       </div>
     `;

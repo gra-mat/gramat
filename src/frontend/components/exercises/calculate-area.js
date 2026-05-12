@@ -1,4 +1,4 @@
-import { css, html, LitElement, until } from "../../lib/lit.min.js";
+import { css, html, LitElement, unsafeHTML, until } from "../../lib/lit.min.js";
 
 import "./partial/keypad.js";
 import "./partial/field.js";
@@ -6,6 +6,7 @@ import "./partial/slider.js";
 import "./partial/success-mark.js";
 import "./partial/drag-drop.js";
 import "./partial/find-error.js";
+import "./partial/explanation-popup.js";
 
 class CalculateArea extends LitElement {
     static properties = {
@@ -112,6 +113,33 @@ class CalculateArea extends LitElement {
       max-width: 520px;
     }
 
+    .show-explanation {
+      padding: 0.5rem 0.75rem;
+      border-radius: 50%;
+      width: 3rem;
+      height: 3rem;
+      border: 2px solid rgba(120, 119, 198, 0.6);
+      background-color: rgba(120, 119, 198, 0.15);
+      color: rgba(237, 240, 255, 0.9);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .show-explanation:hover {
+      background-color: rgba(120, 119, 198, 0.3);
+      border-color: rgba(120, 119, 198, 0.9);
+      transform: scale(1.1);
+      box-shadow: 0 0 15px rgba(120, 119, 198, 0.4);
+    }
+
+    .show-explanation:active {
+      transform: scale(0.95);
+    }
     .square-wrapper {
       display: inline-grid;
       grid-template-columns: auto 1fr;
@@ -151,7 +179,6 @@ class CalculateArea extends LitElement {
       box-sizing: border-box;
     }
    `;
-
 
   constructor() {
     super();
@@ -726,13 +753,32 @@ class CalculateArea extends LitElement {
           return html`<div>Wczytywanie...</div>`;
       }
     }
+
+  async renderExplanationPopup() {
+    console.log('Ładowanie objaśnienia dla ID:', this.config.explanation_id);
+    const response = await fetch(`/api/explanation/${this.config.explanation_id}`)
+    const explanation = await response.json();
+    if (!explanation || !explanation.title || !explanation.description) {
+      console.error('Nieprawidłowe dane objaśnienia:', explanation);
+      return;
+    } 
+    console.log('Zaladowano objaśnienie:', explanation);
+    return html`<x-explanation-popup title="${explanation.title}" description="${explanation.description}"></x-explanation-popup>`;
+  }
+  
+  renderExplanationPopupBtn() {
+    return html`<button class="show-explanation" @click="${() => this.shadowRoot.querySelector('x-explanation-popup').visible = true}">?</button>`;
+  }
   
     render() {
       return html`
         <x-success-mark id="mark"></x-success-mark>
         <div class="container">
+        ${this.renderDifficultyIndicator()}
           <div class="question">${this.renderExerciseQuestion()}</div>
         ${this.renderExerciseContent()}
+        ${this.config.explanation_id !== undefined ? this.renderExplanationPopupBtn() : null}
+        ${this.config.explanation_id !== undefined ? until(this.renderExplanationPopup()) : null}
         </div>
       `;
     }

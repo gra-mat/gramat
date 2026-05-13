@@ -6,7 +6,7 @@ Zespół: Granat
 
 Numer sprintu: 13
 
-Okres: 29.04.2025 - 06.05.2025 
+Okres: 29.04.2026 - 06.05.2026 
 
 ### Zakres moich działań:
 

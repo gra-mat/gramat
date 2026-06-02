@@ -343,6 +343,33 @@ async function init() {
         })
     });
 
+    app.get("/api/me/mathBranchQuestions/:id", async (req, res) => {
+        const mathBranchId = req.params.id;
+        mathBranchRepository.getMathBranch(parseInt(mathBranchId), true).then((mathBranch) => {
+            (req.session as any).currentLesson = mathBranch;
+            (req.session as any).currentQuestionIndex = 0;
+
+            const result = {
+                id: mathBranch.id,
+                name: mathBranch.name,
+                chapters: mathBranch.chapters.map(chapter => ({
+                    id: chapter.id,
+                    name: chapter.name,
+                    mathBranchId: chapter.mathBranchId
+                })),
+                exercises: mathBranch.exercises?.map(exercise => ({
+                    id: exercise.id,
+                    lessonId: exercise.lessonId,
+                    difficultyId: exercise.difficultyId,
+                    exerciseQuestion: exercise.exerciseQuestion,
+                    exerciseProperties: exercise.exerciseProperties,
+                    exerciseAnswer: exercise.exerciseAnswer
+                }))
+            };
+            res.json(result);
+        })
+    });
+
     app.get("/api/me/nextQuestion", async (req, res) => {
         const currentLesson = (req.session as any).currentLesson;
         const idx = (req.session as any).currentQuestionIndex || 0;
@@ -372,7 +399,7 @@ async function init() {
             res.status(500).json({ error: err.message });
         });
     });
-    
+
     app.post('/api/me/lessonCompleted', express.json(), async (req: any, res) => {
     
     if (!req.user || !req.user.id) {
@@ -437,6 +464,52 @@ async function init() {
             return res.status(400).json({ error: 'math branch not found' });
         }
 
+        await userRepository.updateUser(user);
+        
+        try {
+            await achievementUnlockRepository.updateAchievementUnlocks(userId);
+        } catch (err) {
+            console.error('Error updating achievements:', err);
+        }
+
+        return res.json({ message: 'User stats updated successfully' });
+    } catch (err: any) {
+        console.error('Error in lessonCompleted:', err);
+        return res.status(500).json({ error: 'Failed to update user stats' });
+    }
+    });
+
+    app.post('/api/me/quizCompleted', express.json(), async (req: any, res) => {
+    
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    const userId = req.user.id;
+
+    const mathBranchId = parseInt(req.body.mathBranchId);
+    if (!mathBranchId || isNaN(mathBranchId)) {
+        return res.status(400).json({ error: 'mathBranchId is required and must be a number' });
+    }
+
+    const time = req.body.time;
+    if (!time) {
+        return res.status(400).json({ error: 'time is required' });
+    }
+
+    const xp = req.body.xp;
+    if (xp === undefined) {
+        return res.status(400).json({ error: 'xp is required' });
+    }
+
+    try {
+        const exists = await userRepository.checkIfUserExists(userId);
+        if (!exists) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = await userRepository.getUserById(userId);
+        user.setPoints((user.getPoints() || 0) + xp);
+        
         await userRepository.updateUser(user);
         
         try {

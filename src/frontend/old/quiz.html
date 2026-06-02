@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../lib/pure.min.css" />
-  <title>Document</title>
+   <title>Gramat</title>
+   <link rel="icon" type="image/x-icon" href="../icons/logo.svg">
 
   <script type="module" src="../components/old/exercise-viewer.js"></script>
   <script type="module" src="../components/exercises/addsub-exercise.js"></script>
   <script type="module" src="../components/exercises/partial/success-mark.js"></script>
   <script type="module" src="../components/old/summary-viewer.js"></script>
+  <script type="module" src="../components/exercises/fraction-exercise.js"></script>
+  <script type="module" src="../components/exercises/calculate-area.js"></script>
+  <script type="module" src="../components/exercises/percentage-exercise.js"></script>
 
   <style>
     html,
@@ -20,33 +24,72 @@
       background-color: #2c2c54;
       color: white;
     }
+
+    #tiles-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .tile {
+      aspect-ratio: 1;
+      background-color: #16213e;
+      border: 2px solid #0f3460;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 20px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .tile:hover {
+      background-color: #0f3460;
+      transform: scale(1.05);
+    }
   </style>
 </head>
 
 <body>
-  <x-exercise-view>
-    <x-addsub-exercise></x-addsub-exercise>
-  </x-exercise-view>
+  <div id="tiles-container"></div>
 
-  <summary-viewer id="summary" class="hidden" time="0m 37s" accuracy="100%" xp="+70 XP">
-  </summary-viewer>
+    <x-exercise-view style="display: none;">
+      <x-addsub-exercise id="addsub-ex" style="display: none;"></x-addsub-exercise>
+      <x-fraction-exercise id="fraction-ex" style="display: none;"></x-fraction-exercise>
+      <x-calculate-area id="area-ex" style="display: none;"></x-calculate-area>
+      <x-percentage-exercise id="percentage-ex" style="display:none;"></x-percentage-exercise>
+    </x-exercise-view>
+
+    <summary-viewer
+      id="summary"
+      class="hidden"
+      time="0m 37s"
+      xp="+70 XP"
+      quizMode="true">
+    </summary-viewer>
 
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const params = new URLSearchParams(location.search);
-      const lessonId = params.get('lessonId');
-      if (!lessonId) return;
-
-      const r = await fetch(`/api/me/lessonQuestions/${lessonId}`);
-      //const r = await fetch(`/api/lesson/${lessonId}`);
-      if (!r.ok) { console.error('Nie można pobrać lekcji', r.status); return; }
+    const params = new URLSearchParams(location.search);
+    const branchId = params.get('branchId');
+    if (branchId) {
+      const r = await fetch(`/api/me/mathBranchQuestions/${branchId}`);
       const data = await r.json();
       const exercises = data.exercises || [];
       if (!exercises.length) return;
 
       const view = document.querySelector('x-exercise-view');
       const addSub = document.querySelector('x-addsub-exercise');
+      const fraction = document.querySelector('x-fraction-exercise');
+      const area = document.querySelector('x-calculate-area');
+      const percentage = document.querySelector('x-percentage-exercise');
 
+      view.style.display = 'flex';
       let startTime = Date.now();
       let correctAnswers = 0;
       let wrongAnswers = 0;
@@ -54,8 +97,167 @@
       view && view.setAttribute('progress-step', String(100 / exercises.length));
 
       let idx = 0;
-      addSub.exerciseId = exercises[idx].id;
-      // addSub.setAttribute('exercise-id', String(exercises[idx].id));
+
+      const getComponentForExercise = (exercise) => {
+        try {
+          const props = JSON.parse(exercise.exerciseProperties || '{}');
+          const qt = props.question_type;
+          const at = props.answer_type;
+
+          if (exercise.exerciseQuestion && exercise.exerciseQuestion.includes('%')) {
+            return percentage;
+          }
+
+          if (qt === 'calculate_area_square') {
+            return area;
+          }
+
+          if (at === 'selector' || at === 'multiplechoice' || at === 'matching' ||
+              (at === 'keypad' && exercise.exerciseAnswer && exercise.exerciseAnswer.includes("/"))) {
+            return fraction;
+          }
+
+          return addSub;
+        } catch {
+          return addSub;
+        }
+      }
+
+      function showExercise(idx) {
+        const current = exercises[idx];
+        if (!current) return;
+
+        let props;
+        try { props = current.exerciseProperties ? JSON.parse(current.exerciseProperties) : {}; }
+        catch { props = {}; }
+
+        if (Array.isArray(props.options) && props.options.length) {
+          if (!props.answer_type || !['multiplechoice','selector','matching'].includes(props.answer_type)) {
+            props.answer_type = 'multiplechoice';
+          }
+        }
+
+        const isFractionType = props.answer_type === 'selector' ||
+          props.answer_type === 'multiplechoice' ||
+          props.answer_type === 'matching' ||
+          (props.answer_type === 'keypad' && current.exerciseAnswer && current.exerciseAnswer.includes("/"));
+
+        if (current.exerciseQuestion && current.exerciseQuestion.includes('%')) {
+          fraction.style.display = 'none';
+          addSub.style.display = 'none';
+          area.style.display = 'none';
+          percentage.style.display = 'block';
+
+          percentage.exerciseId = current.id;
+          percentage.exercise = current.exerciseQuestion || '';
+          percentage.solution = (current.exerciseAnswer || '').toString().trim();
+          percentage.difficultyId = current.difficultyId || null;
+          percentage.config = props || { answer_type: 'keypad' };
+          percentage.given = '';
+          percentage.statuses = [];
+
+          percentage.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+          return;
+        }
+
+        if (props.question_type === 'calculate_area_square') {
+          fraction.style.display = 'none';
+          addSub.style.display = 'none';
+          area.style.display = 'block';
+
+          area.exerciseId = current.id;
+          area.exercise = current.exerciseQuestion || '';
+          area.solution = current.exerciseAnswer || '';
+          area.difficultyId = current.difficultyId || null;
+          area.square_side_length = props.side_length;
+          area.config = props || { answer_type: 'keypad' };
+          if (area.config.answer_type === 'slider' && area.config.answer_length) {
+            const digits = parseInt(area.config.answer_length);
+            if (digits != 1) {
+              area.sliderMin = Math.pow(10, digits - 1); 
+              area.sliderMax = Math.pow(10, digits); 
+            } else {
+              area.sliderMin = 0; 
+              area.sliderMax = 10; 
+            }
+            area.given = Math.floor(Math.pow(10, digits) / 2).toString();
+          }
+          area.orderStage = 1;
+          area.orderError = null;
+          area.orderOperations = [];
+          area.selectedOpIndex = null;
+          area.resultOptions = [];
+          area.selectedResult = null;
+          area.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+          return;
+        }
+
+        if (isFractionType) {
+          fraction.style.display = 'block';
+          addSub.style.display = 'none';
+          area.style.display = 'none';
+
+          fraction.exerciseId = current.id;
+          fraction.exercise = current.exerciseQuestion || '';
+          fraction.config = props || { answer_type: 'keypad' };
+
+          const parts = (current.exerciseAnswer || '').toString().split('/');
+          fraction.solution = { numerator: parts[0] || '', denominator: parts[1] || '' };
+          fraction.difficultyId = current.difficultyId || null;
+
+          if (typeof current.exerciseAnswer === 'string' && current.exerciseAnswer.includes(',')) {
+            fraction._expectedAnswers = current.exerciseAnswer.split(',').map(s => s.trim());
+          } else {
+            fraction._expectedAnswers = null;
+          }
+
+          if (Array.isArray(props.options) && props.options.length) {
+            fraction.options = props.options;
+            fraction.given = { numerator: props.options[0].numerator, denominator: props.options[0].denominator };
+          } else {
+            fraction.options = [];
+            fraction.given = { numerator: '', denominator: '' };
+          }
+
+          fraction.statuses = ["", ""];
+          fraction.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+          return;
+        }
+
+        fraction.style.display = 'none';
+        addSub.style.display = 'block';
+        area.style.display = 'none';
+
+        addSub.exercise = current.exerciseQuestion || '';
+        addSub.solution = current.exerciseAnswer || '';
+        addSub.difficultyId = current.difficultyId || null;
+        addSub.config = props || { answer_type: 'keypad' };
+        if (addSub.config.answer_type === 'slider' && addSub.config.answer_length) {
+          const digits = parseInt(addSub.config.answer_length);
+          if (digits != 1) {
+            addSub.sliderMin = Math.pow(10, digits - 1); 
+            addSub.sliderMax = Math.pow(10, digits); 
+          } else {
+            addSub.sliderMin = 0; 
+            addSub.sliderMax = 10; 
+          }
+          addSub.given = Math.floor(Math.pow(10, addSub.config.answer_length) / 2).toString();
+        }
+        addSub.orderStage = 1;
+        addSub.orderError = null;
+        addSub.orderOperations = [];
+        addSub.selectedOpIndex = null;
+        addSub.resultOptions = [];
+        addSub.selectedResult = null;
+
+        if (addSub.config.answer_type === 'order') {
+          addSub._prepareOrderExercise();
+        }
+
+        addSub.exerciseId = current.id;
+        addSub.dispatchEvent(new CustomEvent('exercise-loaded', { bubbles: true, composed: true }));
+      }
+
 
       const updateTimer = () => {
         const elapsedTime = Date.now() - startTime;
@@ -70,20 +272,19 @@
 
       const timerInterval = setInterval(updateTimer, 1000);
 
+      showExercise(0);
+
       view.addEventListener("next-exercise", async () => {
-        const wasCorrect = !!addSub.isCorrect;
+        const component = getComponentForExercise(exercises[idx]);
+        const wasCorrect = !!component.isCorrect;
         if (wasCorrect) correctAnswers++;
         else wrongAnswers++;
 
         idx++;
 
-        if (wrongAnswers >= 1) {
-
+        if (idx >= exercises.length || !wasCorrect) {
           const summary = document.querySelector("#summary");
-          if (!summary) {
-            console.error("Nie znaleziono elementu summary!");
-            return;
-          }
+          if (!summary) return;
 
           document.querySelector("x-exercise-view").classList.add("hidden");
 
@@ -95,35 +296,43 @@
           const accuracy = Math.round((correctAnswers / total) * 100);
           const xp = (correctAnswers * 10).toFixed(0);
 
-          summary.setAttribute("time", `${minutes}m ${seconds}s`);
-          summary.setAttribute("accuracy", `${idx}`);
-          summary.setAttribute("xp", `+${xp} XP`);
+          summary.time = `${minutes}m ${seconds}s`;
+          summary.xp = `+${xp} XP`;
           summary.classList.remove("hidden");
 
           clearInterval(timerInterval);
 
-          await fetch("/api/me/lessonCompleted", {
+          await fetch("/api/me/quizCompleted", {
             method: "POST",
             credentials: "include",
             body: JSON.stringify({
-              lessonId: lessonId,
+              mathBranchId: branchId,
               time: elapsedTime,
-              accuracy: accuracy,
               xp: Number(xp)
             }),
             headers: {
               "Content-type": "application/json; charset=UTF-8"
             }
           });
-          console.log("Lekcja zakończona");
           return;
         }
-
-
         setTimeout(() => {
-          addSub.setAttribute("exercise-id", String(exercises[idx].id));
+          showExercise(idx);
         }, 350);
       });
+    } else {
+        const r = await fetch('/api/mathBranch/list');
+        const data = await r.json();
+        for (let i = 0; i < data.length; i++) {
+          const tile = document.createElement('div');
+          tile.className = 'tile';
+          tile.textContent = data[i].name;
+          tile.addEventListener('click', () => {
+            window.location.href = `/old/quiz.html?branchId=${data[i].id}`;
+          });
+          document.getElementById('tiles-container').appendChild(tile);
+        }
+      }
     });
   </script>
 

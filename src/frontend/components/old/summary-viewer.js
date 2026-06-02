@@ -5,6 +5,7 @@ class SummaryViewer extends LitElement {
     time: { type: String, reflect: true },
     accuracy: { type: String, reflect: true },
     xp: { type: String, reflect: true },
+    quizMode: { type: String, reflect: true }
   };
 
   constructor() {
@@ -12,6 +13,7 @@ class SummaryViewer extends LitElement {
     this.time = "0m 0s";
     this.accuracy = "0%";
     this.xp = "+0 XP";
+    this.quizMode = "false";
     this._seqTimers = [];
   }
 
@@ -100,7 +102,29 @@ class SummaryViewer extends LitElement {
   }
 
   render() {
-    return html`
+    if (this.quizMode === "true") {
+      return html`
+      <div class="summary-card" role="dialog" aria-label="Podsumowanie quizu">
+        <h2 class="summary-title">Podsumowanie quizu</h2>
+
+        <div class="summary-section">
+          <img class="summary-icon" src="../../icons/timer.svg" alt="Timer" />
+          <div class="summary-content"><p>Czas: ${this.time}</p></div>
+        </div>
+
+        <div class="summary-section">
+          <img class="summary-icon" src="../../icons/xp.svg" alt="XP" />
+          <div class="summary-content"><p>${this.xp}</p></div>
+        </div>
+
+        <div class="button-group">
+          <button class="btn repeat" @click=${() => this._repeatLesson()}>Powtórz</button>
+          <button class="btn next" @click=${() => this._proceed()}>Dalej</button>
+        </div>
+      </div>
+    `;
+    } else {
+      return html`
       <div class="summary-card" role="dialog" aria-label="Podsumowanie lekcji">
         <h2 class="summary-title">Podsumowanie lekcji</h2>
 
@@ -125,6 +149,7 @@ class SummaryViewer extends LitElement {
         </div>
       </div>
     `;
+    }
   }
 
   _repeatLesson() {

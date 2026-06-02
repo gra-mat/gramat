@@ -108,7 +108,7 @@ x-link > div:hover{
   render() {
     return html`
       <div class="content">
-        <x-link to="" @click=${() => window.location.href = '/old/quiz.html?lessonId=1'}>
+        <x-link to="" @click=${() => window.location.href = '/old/quiz.html'}>
           <div>Quiz</div>
         </x-link>
 

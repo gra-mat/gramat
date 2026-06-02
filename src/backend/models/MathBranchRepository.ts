@@ -1,6 +1,7 @@
 import {Database} from "./Database.ts";
 import { Chapter } from './Chapter.ts';
 import { MathBranch } from './MathBranch.ts';
+import { Exercise } from "./Exercise.ts";
 
 
 export class MathBranchRepository {
@@ -11,7 +12,7 @@ export class MathBranchRepository {
         this.db = db;
     }
 
-    async getMathBranch(mathBranchId : number) : Promise<MathBranch> {
+    async getMathBranch(mathBranchId : number, withExercises: boolean) : Promise<MathBranch> {
         try {
             const mathBranchRows = await new Promise<any[]>((resolve, reject) => {
                 if (this.db.dbObj === null) {
@@ -41,6 +42,28 @@ export class MathBranchRepository {
                 chapters.push(chapter);
             });
             mathBranch.setChapters(chapters);
+
+            if (withExercises) {
+                const exerciseRows = await new Promise<any[]>((resolve, reject) => {
+                    if (this.db.dbObj === null) {
+                        throw new Error('Database not connected');
+                    }
+                    this.db.dbObj.all(`SELECT * FROM exercises
+                    INNER JOIN lessons ON exercises.lesson_id = lessons.lesson_id
+                    INNER JOIN chapters ON lessons.chapter_id = chapters.chapter_id
+                    WHERE chapters.math_branch_id = ${mathBranchId}`, [], (err, rows) => {
+                        if (err) { reject(err) }
+                        else { resolve(rows) };
+                    });
+                });
+
+                const exercises: Array<Exercise> = [];
+                exerciseRows.forEach((row) => {
+                    const exercise = new Exercise(row.exercise_id, row.lesson_id, row.difficulty_id, row.random_values_conditions, row.exercise_question, row.exercise_properties, row.exercise_answer);
+                    exercises.push(exercise);
+                });
+                mathBranch.setExercises(exercises);
+            }
             return mathBranch;
         } catch (err) {
             throw new Error(`Error fetching lesson: ${err}`);

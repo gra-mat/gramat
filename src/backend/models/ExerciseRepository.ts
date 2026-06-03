@@ -4,13 +4,13 @@ import { Exercise } from './Exercise.ts';
 
 export class ExerciseRepository {
 
-    db : Database;
+    db: Database;
 
     constructor(db: Database) {
         this.db = db;
     }
 
-    async getExercise(exerciseId : number) : Promise<Exercise> {
+    async getExercise(exerciseId: number): Promise<Exercise> {
 
         try {
             const rows: any[] = await new Promise<any[]>((resolve, reject) => {
@@ -35,7 +35,8 @@ export class ExerciseRepository {
                 r.random_values_conditions,
                 r.exercise_question,
                 r.exercise_properties,
-                r.exercise_answer
+                r.exercise_answer,
+                r.class
             );
             return exercise;
         } catch (err: any) {
@@ -43,7 +44,7 @@ export class ExerciseRepository {
         }
     }
 
-    async getRandomExercise() : Promise<Exercise> {
+    async getRandomExercise(): Promise<Exercise> {
         try {
             const rows: any[] = await new Promise<any[]>((resolve, reject) => {
                 if (this.db.dbObj === null) {
@@ -66,7 +67,8 @@ export class ExerciseRepository {
                 r.random_values_conditions,
                 r.exercise_question,
                 r.exercise_properties,
-                r.exercise_answer
+                r.exercise_answer,
+                r.class
             );
             return exercise;
         } catch (err: any) {

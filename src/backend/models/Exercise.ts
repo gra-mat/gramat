@@ -6,8 +6,9 @@ export class Exercise {
     exerciseQuestion: string;
     exerciseProperties: string | null;
     exerciseAnswer: string | null;
+    exerciseClass: string | null;
 
-    constructor(id: number, lessonId: number, difficultyId: number, randomValuesConditions: string | null, exerciseQuestion: string, exerciseProperties : string | null, exerciseAnswer: string | null) {
+    constructor(id: number, lessonId: number, difficultyId: number, randomValuesConditions: string | null, exerciseQuestion: string, exerciseProperties : string | null, exerciseAnswer: string | null,     exerciseClass: string | null) {
         this.id = id;
         this.lessonId = lessonId;
         this.difficultyId = difficultyId;
@@ -15,6 +16,7 @@ export class Exercise {
         this.exerciseQuestion = exerciseQuestion;
         this.exerciseProperties = exerciseProperties;
         this.exerciseAnswer = exerciseAnswer;
+        this.exerciseClass = exerciseClass;
         if (this.randomValuesConditions != null) {
             this.prepareRandomValuesExercise();
         }

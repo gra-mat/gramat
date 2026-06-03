@@ -5,13 +5,13 @@ import fs from 'fs';
 
 export class UserRepository {
 
-    db : Database;
+    db: Database;
 
     constructor(db: Database) {
         this.db = db;
     }
 
-    async getUserById(userId : string) : Promise<User> {
+    async getUserById(userId: string): Promise<User> {
 
         try {
             const rows: any[] = await new Promise<any[]>((resolve, reject) => {
@@ -49,7 +49,7 @@ export class UserRepository {
         }
     }
 
-    async getLeaderboard() : Promise<Array<User>> {
+    async getLeaderboard(): Promise<Array<User>> {
         try {
             const rows: any[] = await new Promise<any[]>((resolve, reject) => {
                 if (this.db.dbObj === null) {
@@ -76,7 +76,7 @@ export class UserRepository {
         }
     }
 
-    async checkIfUserExists(userId : string) : Promise<boolean> {
+    async checkIfUserExists(userId: string): Promise<boolean> {
         try {
             const rows: any[] = await new Promise<any[]>((resolve, reject) => {
                 if (this.db.dbObj === null) {
@@ -87,7 +87,7 @@ export class UserRepository {
                     else { resolve(rows); }
                 });
             });
-            
+
             return rows && rows.length > 0;
         } catch (err: any) {
             throw new Error(`Error checking user existence: ${err}`);
@@ -110,7 +110,7 @@ export class UserRepository {
         });
     }
 
-    async checkIfUserAvatarIsCached(userId: string) : Promise<boolean> {
+    async checkIfUserAvatarIsCached(userId: string): Promise<boolean> {
         if (fs.existsSync(`avatars/${userId}.jpg`)) {
             return true;
         }
@@ -119,12 +119,12 @@ export class UserRepository {
 
     async getUserCachedAvatar(userId: string) {
         if (await this.checkIfUserAvatarIsCached(userId)) {
-            return fs.access(`avatars/${userId}.jpg`, () => {});
+            return fs.access(`avatars/${userId}.jpg`, () => { });
         }
         return null;
     }
 
-    async createUserWithGoogle(userId : string, name: string, email: string, avatarUrl: string | null) : Promise<User> {
+    async createUserWithGoogle(userId: string, name: string, email: string, avatarUrl: string | null): Promise<User> {
         const password = null;
         const authProvider = "google";
         const permissions = "normal";
@@ -132,7 +132,7 @@ export class UserRepository {
         const strengths = null;
         const weaknesses = null;
         const suggestedExercises = null;
-        const stats = JSON.stringify({"completedLessons": 0, "perfectlyCompletedLessons": 0, math_branches: {}});
+        const stats = JSON.stringify({ "completedLessons": 0, "perfectlyCompletedLessons": 0, math_branches: {} });
         if (typeof avatarUrl === 'string') {
             this.cacheUserAvatar(userId, avatarUrl);
         }
@@ -155,7 +155,7 @@ export class UserRepository {
         }
     }
 
-    async updateUser(user: User) : Promise<void> {
+    async updateUser(user: User): Promise<void> {
         try {
             await new Promise<void>((resolve, reject) => {
                 if (this.db.dbObj === null) {
@@ -219,6 +219,48 @@ export class UserRepository {
             });
         } catch (err: any) {
             throw new Error(`Error updating user: ${err}`);
+        }
+    }
+
+    async getUserSkills(userId: string): Promise<Record<string, number>> {
+        try {
+            const rows: any[] = await new Promise<any[]>((resolve, reject) => {
+                if (this.db.dbObj === null) {
+                    reject(new Error('Database not connected'));
+                    return;
+                }
+                this.db.dbObj.all('SELECT skills FROM users WHERE user_id = ?', [userId], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                });
+            });
+
+            if (!rows || rows.length === 0) {
+                throw new Error(`User ${userId} not found`);
+            }
+
+            const skillsJson = rows[0].skills || '{}';
+            return JSON.parse(skillsJson);
+        } catch (err: any) {
+            throw new Error(`Error fetching user skills: ${err.message || err}`);
+        }
+    }
+
+    async updateUserSkills(userId: string, skillsObj: Record<string, number>): Promise<void> {
+        try {
+            const skillsJson = JSON.stringify(skillsObj);
+            await new Promise<void>((resolve, reject) => {
+                if (this.db.dbObj === null) {
+                    reject(new Error('Database not connected'));
+                    return;
+                }
+                this.db.dbObj.run('UPDATE users SET skills = ? WHERE user_id = ?', [skillsJson, userId], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+            });
+        } catch (err: any) {
+            throw new Error(`Error updating user skills: ${err.message || err}`);
         }
     }
 
